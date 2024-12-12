@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import Image from "next/image";
 import Link from "next/link";
-import { Login,SignUp } from "./components/authentication/loginCard";
+import { Login } from "./components/authentication/loginCard";
 
 export default function Home() {
   return (
@@ -16,7 +18,7 @@ export default function Home() {
         />
         <Login />
         <p>
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/authentication/SignUp" className="text-blue-600 hover:underline">
             Sign Up now
           </Link>

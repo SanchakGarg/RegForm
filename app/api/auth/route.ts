@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongodb";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
 // Function to hash password
 async function hashPassword(password: string) {
@@ -7,24 +7,17 @@ async function hashPassword(password: string) {
   return await bcrypt.hash(password, saltRounds);
 }
 
-// POST handler for user registration
+// Handle POST requests for user registration
 export async function POST(req: Request) {
   const { name, universityName, email, password } = await req.json();
-
-  // Validate required fields
-  if (!name || !universityName || !email || !password) {
-    return new Response(
-      JSON.stringify({ error: "All fields are required." }),
-      { status: 400 }
-    );
-  }
 
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");
 
-    // Check if email is already registered
+    // Check if the email already exists
     const existingUser = await collection.findOne({ email });
+
     if (existingUser) {
       return new Response(
         JSON.stringify({ error: "Email is already registered." }),
@@ -32,15 +25,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash the password securely
+    // Hash the password and store user
     const hashedPassword = await hashPassword(password);
 
-    // Insert user with hashed password into database
-    await collection.insertOne({ 
-      name, 
-      universityName, 
-      email, 
-      password: hashedPassword 
+    await collection.insertOne({
+      name,
+      universityName,
+      email,
+      password: hashedPassword,
     });
 
     return new Response(

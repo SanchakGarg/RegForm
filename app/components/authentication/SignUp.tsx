@@ -1,9 +1,8 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useState } from "react";
-
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -16,44 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export function Login() {
-    return (
-        <Card className="w-[350px]">
-            <CardHeader>
-                <CardTitle>Sign in to Agneepath 6.0</CardTitle>
-                {/* <CardDescription>Deploy your new project in one-click.</CardDescription> */}
-            </CardHeader>
-            <CardContent>
-                <form>
-                    <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="email" />
-                        </div>
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" placeholder="password" />
-                        </div>
-                    </div>
-                    
-                </form>
-                <p>
-          {" "}
-          <Link href="/authentication/SignUp" className="text-blue-600 hover:underline">
-            forgot password?
-          </Link>
-        </p>
-                
-            </CardContent>
-            <CardFooter className="flex justify-end">
-                <Button>Sign In</Button>
-            </CardFooter>
-        </Card>
-    )
-}
-
-
 export function SignUp() {
+    const router = useRouter(); 
     const [formData, setFormData] = useState({
         name: "",
         universityName: "",
@@ -69,15 +32,24 @@ export function SignUp() {
         setFormData((prev) => ({ ...prev, [id]: value }));
     };
 
+    // Frontend validation for email and password length
     const validateForm = () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError("Please enter a valid email address.");
+            return false;
+        }
+
+        if (formData.password.length < 8) {
+            setError("Password must be at least 8 characters long.");
+            return false;
+        }
+
         if (!formData.name || !formData.universityName || !formData.email || !formData.password) {
             setError("All fields are required.");
             return false;
         }
-        if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            setError("Please enter a valid email address.");
-            return false;
-        }
+
         return true;
     };
 
@@ -97,8 +69,11 @@ export function SignUp() {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json();
+
             if (response.ok) {
-                setSuccess("Sign-up successful! You can now log in.");
+                setSuccess(data.message || "Sign-up successful!");
+                router.push("/Verification")
                 setFormData({
                     name: "",
                     universityName: "",
@@ -106,8 +81,7 @@ export function SignUp() {
                     password: "",
                 });
             } else {
-                const data = await response.json();
-                setError(data.error || "An error occurred. Please try again.");
+                setError(data.error || "Something went wrong.");
             }
         } catch (err) {
             setError("Failed to connect to the server. Please try again.");

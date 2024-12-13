@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import Link from "next/link";
-import { Login, SignUp } from "../../components/authentication/login_SignUpCard";
+import { Login } from "../../components/authentication/Login";
 
 export default function LoginPage() {
   return (
-   <div>
+   <div className="items-center sm:items-center justify-items-center">
         <Login />
-        <p>
+        <p className="pt-5">
         Don&apos;t have an account? {" "}
-          <Link href="/authentication/SignUp/" className="text-blue-600 hover:underline">
+          <Link href="/SignUp/" className="text-blue-600 hover:underline">
             Sign Up now
           </Link>
         </p>

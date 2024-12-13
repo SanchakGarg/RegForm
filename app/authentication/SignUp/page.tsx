@@ -1,41 +1,19 @@
-import * as React from "react"
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import Image from "next/image";
+import Link from "next/link";
+import { SignUp } from "../../components/authentication/login_SignUpCard";
 
-
-export default function SignUp() {
-    return (
-        <Card className="w-[350px]">
-            <CardHeader>
-                <CardTitle>sign up</CardTitle>
-                {/* <CardDescription>Deploy your new project in one-click.</CardDescription> */}
-            </CardHeader>
-            <CardContent>
-                <form>
-                    <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="email" />
-                        </div>
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" placeholder="password" />
-                        </div>
-                    </div>
-                </form>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-                <Button>Sign In</Button>
-            </CardFooter>
-        </Card>
-    )
+export default function SignUpPage() {
+  return (
+    <div>
+        <SignUp />
+        <p>
+          Already have an account? {" "}
+          <Link href="/authentication/Login" className="text-blue-600 hover:underline">
+            Sign In
+          </Link>
+        </p>
+        </div>
+  );
 }

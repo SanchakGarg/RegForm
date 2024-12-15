@@ -1,4 +1,6 @@
 import * as crypto from 'crypto';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 // Secret key (In practice, store securely - e.g., environment variables)
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-character-long-key-here!';

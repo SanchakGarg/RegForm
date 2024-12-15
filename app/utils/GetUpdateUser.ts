@@ -1,5 +1,4 @@
 import { connectToDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 
 // Define interfaces for type safety
 export interface User {

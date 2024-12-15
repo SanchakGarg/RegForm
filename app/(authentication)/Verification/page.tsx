@@ -1,6 +1,5 @@
-'use client'
-
-import * as React from "react";
+'use client';
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { decrypt } from "@/app/utils/encryption";
 import styles from './auth.module.css';
@@ -11,34 +10,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { post } from "@/app/utils/PostGetData";
 
 export default function VerifyAccount() {
-  const [error, setError] = useState<string>(""); // Moved inside the component
-  const [success, setSuccess] = useState<string>(""); // Moved inside the component
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Moved inside the component
-  const searchParams = useSearchParams();
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(null); // State to safely track token
 
+  // Manually parse token from the URL's query string
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tokenFromURL = params.get("v");
+      if (tokenFromURL) {
+        setToken(tokenFromURL);
+      }
+    }
+  }, []);
 
-  const handleResendEmail = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    setSuccess("");
-    setError("");
-    setIsLoading(true);
-
-    const v = searchParams.get("v"); // Extract 'v' from the query params
-
-    if (!v) {
-      setError("Invalid verification token.");
-      setIsLoading(false);
+  const handleResendEmail = async () => {
+    if (!token) {
+      setError("Token missing, unable to resend email.");
       return;
     }
 
-    try {
-      const decryptedValue = decrypt(v);
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
 
-      if (!decryptedValue || !decryptedValue.email) {
+    try {
+      const decryptedValue = decrypt(token);
+
+      if (!decryptedValue?.email) {
         setError("Unable to decrypt token or invalid data.");
         setIsLoading(false);
         return;
@@ -81,7 +85,7 @@ export default function VerifyAccount() {
         <Button
           onClick={handleResendEmail}
           disabled={isLoading}
-          className={isLoading ? " opacity-50 cursor-not-allowed" : ""}
+          className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
         >
           {isLoading ? <div className={styles.spinner}></div> : "Resend Email"}
         </Button>

@@ -8,6 +8,7 @@ export interface User {
   password?: string;
   emailVerified?: boolean;
   VerificationId?: string;
+  vid?: string;
 }
 
 export interface ErrorMessage {
@@ -22,26 +23,27 @@ function createErrorResponse(code: number, message: string, details?: string): E
 }
 
 /**
- * Fetch user data from database by email with specific fields only.
- * @param email - Email to query for user.
+ * Fetch user data from database by dynamic key (email/vid) with specified fields only.
+ * @param queryKey - 'email' or 'vid' as the identifier key.
+ * @param queryValue - The value to query with.
  * @param fields - List of fields to fetch from database.
  */
-export async function getUserData(email: string, fields: (keyof User)[]) {
+export async function fetchUserData(queryKey: keyof User, queryValue: string, fields: (keyof User)[]) {
   try {
     const { db } = await connectToDatabase();
 
-    // Create a projection object dynamically to limit fields fetched from MongoDB
-    const projection: Record<string, 1 | 0> = {};
+    // Create a projection object dynamically to limit fields fetched
+    const projection: Record<string, 1 | 0> = { _id: 0 }; // Explicitly exclude _id
     fields.forEach((field) => {
-      projection[field] = 1; // Set the fields specified to return
+      projection[field] = 1; // Dynamically build the projection fields
     });
 
     const user = await db
       .collection("users")
-      .findOne({ email }, { projection });
+      .findOne({ [queryKey]: queryValue }, { projection });
 
     if (!user) {
-      return createErrorResponse(404, "User not found", "No user exists with this email.");
+      return createErrorResponse(404, "User not found", `No user found for ${queryKey}: ${queryValue}`);
     }
 
     return { success: true, data: user };
@@ -52,43 +54,70 @@ export async function getUserData(email: string, fields: (keyof User)[]) {
 }
 
 /**
- * Updates user fields or inserts if a new user doesn't exist
- * @param email - User's email
- * @param data - Fields to insert or update
+ * Delete user data by dynamic identifier (email/vid).
+ * @param queryKey - 'email' or 'vid' as the identifier key.
+ * @param queryValue - The value to delete.
  */
-export async function updateUserData(email: string, data: Partial<User>) {
+export async function deleteUserData(queryKey: keyof User, queryValue: string) {
+  try {
+    const { db } = await connectToDatabase();
+
+    const result = await db.collection("users").deleteOne({ [queryKey]: queryValue });
+
+    if (result.deletedCount === 0) {
+      return createErrorResponse(404, "No user found to delete.");
+    }
+
+    return { success: true, message: "User deleted successfully." };
+  } catch (error) {
+    console.error("Error deleting user data:", error);
+    return createErrorResponse(500, "Failed to delete user data.");
+  }
+}
+
+/**
+ * Updates or inserts user fields or creates a new user if one doesn't already exist.
+ * @param emailOrVID - Identifier for the user (email/vid).
+ * @param data - Fields to insert or update.
+ */
+export async function updateUserData(emailOrVID: string, data: Partial<User>) {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");
 
-    const existingUser = await collection.findOne({ email });
+    const identifierKey = data.email ? "email" : data.vid ? "vid" : undefined;
+
+    if (!identifierKey) {
+      return createErrorResponse(400, "Invalid identifier key provided.");
+    }
+
+    const existingUser = await collection.findOne({ [identifierKey]: emailOrVID });
 
     if (existingUser) {
-      // Update fields if user exists
       const result = await collection.updateOne(
-        { email },
+        { [identifierKey]: emailOrVID },
         { $set: data }
       );
 
       if (result.modifiedCount > 0) {
         return { success: true, message: "User updated successfully", data };
-      } else {
-        return createErrorResponse(400, "No changes made to the user data.");
       }
-    } else {
-      // Insert a new user if the email doesn't exist
-      const newUser = {
-        ...data,
-        email,
-        emailVerified: false, // Set email verification by default
-      };
 
-      await collection.insertOne(newUser);
-
-      return { success: true, message: "User created successfully", data: newUser };
+      return createErrorResponse(400, "No changes were made.");
     }
+
+    const newUser = {
+      ...data,
+      email: data.email || undefined,
+      vid: data.vid || undefined,
+      emailVerified: false,
+    };
+
+    await collection.insertOne(newUser);
+
+    return { success: true, message: "User created successfully", data: newUser };
   } catch (error) {
-    console.error("Error processing user data:", error);
-    return createErrorResponse(500, "Failed to process user data.");
+    console.error("Error updating user data:", error);
+    return createErrorResponse(500, "Failed to update user data.");
   }
 }

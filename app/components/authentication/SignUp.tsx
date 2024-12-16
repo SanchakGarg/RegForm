@@ -86,8 +86,9 @@ export function SignUp() {
 
             if (data) {
               setSuccess(data.message || "Sign-up successful!");
-              router.push(`/Verification?v=${encrypt({ email: formData.email })}`);
               await post<{ email: string }>("/api/Mailer/Verification", { email: formData.email });
+              router.push(`/verification?v=${encrypt({ email: formData.email })}`);
+              
 
             } else if (error) {
               setError(error?.error || "Something went wrong.");

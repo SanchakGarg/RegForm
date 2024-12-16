@@ -31,7 +31,7 @@ export default function VerifyAccount() {
 
   const handleResendEmail = async () => {
     if (!token) {
-      setError("Token missing, unable to resend email.");
+      setError("unable to resend email.");
       return;
     }
 

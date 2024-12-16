@@ -41,6 +41,8 @@ export async function POST(req: Request) {
     // Hash the password and store user
     const hashedPassword = await hashPassword(password);
     const vid = generateVerificationId();
+    const currentTime = new Date(); // Get current date and time
+    const expirationTime = new Date(currentTime.getTime() + 15 * 60 * 1000);
     await collection.insertOne({
       name,
       universityName,
@@ -48,6 +50,7 @@ export async function POST(req: Request) {
       password: hashedPassword,
       emailVerified: false,
       VerificationId: vid,
+      vTimeLimit: expirationTime,
     });
 
     return new Response(

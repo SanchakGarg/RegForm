@@ -1,3 +1,4 @@
+import { encrypt } from "@/app/utils/encryption";
 import { connectToDatabase } from "@/lib/mongodb";
 import nodemailer from "nodemailer";
 
@@ -32,13 +33,14 @@ async function sendEmail(to: string, id: string) {
   });
 const {ROOT_URL} = process.env;
 const vlink = ROOT_URL+`verify?token=${id}`;
-  // Send the email
+const emailContent = `<p>Please verify your email by clicking this link: 
+    <b>${process.env.ROOT_URL}verification/${encrypt(new Date())}?e=${encrypt({ email: to })}&i=${encrypt({vid:id})}</b></p>`;
   await transporter.sendMail({
     from: `"Verification" <${EMAIL_ADMIN}>`, // Sender's name and email
     to, // Recipient's email
     subject: "Verify your account", // Email subject
     text: `Please verify your email using this Link: ${vlink}`, // Plain text email content
-    html: `<p>Please verify your email by clicking this link: <b>${id}</b></p>`, // HTML email content
+    html: emailContent, // HTML email content
   });
 }
 
@@ -52,8 +54,8 @@ export async function POST(req: Request) {
     if (!verificationId) {
       console.error("No VerificationId found for the given email.");
       return new Response(
-        JSON.stringify({ error: "User or VerificationId not found for provided email." }),
-        { status: 404 }
+        JSON.stringify({ error: "User or VerificationId        { status: 404 } not found for provided email." }),
+
       );
     }
 

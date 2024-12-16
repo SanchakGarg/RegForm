@@ -1,15 +1,14 @@
+import { hashPassword } from "@/app/utils/hashing";
 import { connectToDatabase } from "@/lib/mongodb";
-import bcrypt from "bcrypt";
-
-// Function to hash password
-async function hashPassword(password: string) {
-  const saltRounds = 10; // Secure number of salt rounds for bcrypt
-  return await bcrypt.hash(password, saltRounds);
+import crypto from "crypto";
+import { createErrorResponse } from "@/app/utils/interfaces";
+function generateVerificationId() {
+  return crypto.randomBytes(32).toString("hex"); // Generates a 64-character token
 }
 
 // Handle POST requests for user registration
 export async function POST(req: Request) {
-  const { name, universityName, email, password } = await req.json();
+  const { name, universityName, email,password } = await req.json();
 
   try {
     const { db } = await connectToDatabase();
@@ -19,20 +18,26 @@ export async function POST(req: Request) {
     const existingUser = await collection.findOne({ email });
 
     if (existingUser) {
-      return new Response(
-        JSON.stringify({ error: "Email is already registered." }),
-        { status: 409 }
+      return createErrorResponse(
+        409,
+        "Email is already registered.",
+        "Please use a different email address."
       );
     }
 
     // Hash the password and store user
     const hashedPassword = await hashPassword(password);
-
+    const vid = generateVerificationId();
+    const currentTime = new Date(); // Get current date and time
+    const expirationTime = new Date(currentTime.getTime() + 15 * 60 * 1000);
     await collection.insertOne({
       name,
       universityName,
       email,
       password: hashedPassword,
+      emailVerified: false,
+      VerificationId: vid,
+      vTimeLimit: expirationTime,
     });
 
     return new Response(
@@ -41,9 +46,10 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Error creating user:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error." }),
-      { status: 500 }
+    return createErrorResponse(
+      500,
+      "Internal server error.",
+      "An unexpected error occurred. Please try again later."
     );
   }
 }

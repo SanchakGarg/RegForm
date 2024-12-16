@@ -42,7 +42,22 @@ const emailContent = `<p>Please verify your email by clicking this link:
     text: `Please verify your email using this Link: ${vlink}`, // Plain text email content
     html: emailContent, // HTML email content
   });
+  
 }
+
+// const transporter = nodemailer.createTransport({
+//   host: "no-reply.agneepath.co.in", // Replace with your SMTP host (e.g., Mailcow server or provider's SMTP)
+//   port: 587, // Replace with the appropriate SMTP port (587 for TLS, 465 for SSL)
+//   secure: false, // Set to `true` for port 465
+//   auth: {
+//     user: EMAIL_ADMIN,
+//     pass: PASS_ADMIN,
+//   },
+//   tls: {
+//     rejectUnauthorized: false, // Allow self-signed certificates
+//   },
+// });
+
 
 // Handle POST requests for sending emails
 export async function POST(req: Request) {

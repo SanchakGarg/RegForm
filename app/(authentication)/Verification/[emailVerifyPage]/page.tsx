@@ -3,35 +3,45 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { post } from "@/app/utils/PostGetData";
-import { decrypt } from "@/app/utils/encryption";
+import styles from '../spinner.module.css';
 
 export default function VerifyAccount() {
   const [token, setToken] = useState<string | null>(null);
-
+  const [email, setEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [content,setContent] = useState<string |null >(null);
+  const [title,setTitle] = useState<string |null >("verifying");
   // Extract token from URL query parameters
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tokenFromURL = params.get("i");
+      const emailFromUrl = params.get("e");
       if (tokenFromURL) {
         setToken(tokenFromURL);
-        console.log("Extracted token:", tokenFromURL); // Correctly logs the extracted token
+      }
+      if (emailFromUrl) {
+        setEmail(emailFromUrl);
       }
     }
   }, []);
 
   // Function to verify email
-  const handleEmailVerify = async (verificationToken: string | null) => {
-    if (!verificationToken) {
-      console.error("No token provided for verification");
-      return;
-    }
-
+  const handleEmailVerify = async (verificationToken: string | null, emailID: string |null) => {
     try {
-      const response = await post<{ email: string }>("/api/auth/emailVerify", {
+      const response = await post<{ success: boolean }>("/api/auth/emailVerify", {
         vid: verificationToken,
+        e: emailID
       });
-      console.log("Verification response:", response);
+      if (response.data && response.data.success) {
+        setTitle("verified");
+        setIsLoading(false);
+        setContent("Email Verified. you can Login now");
+      } else {
+        setTitle("Invalid link")
+        setIsLoading(false);
+        setContent("Something went wrong please check again");
+      }
     } catch (error) {
       console.error("Error verifying email:", error);
     }
@@ -40,20 +50,18 @@ export default function VerifyAccount() {
   // Trigger email verification when token is available
   useEffect(() => {
     if (token) {
-      handleEmailVerify(token);
+      handleEmailVerify(token,email);
     }
   }, [token]);
 
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Verify Your Account</CardTitle>
+      {title && <CardTitle className="">{title}</CardTitle>}
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 mb-4">Checking your verification token...</p>
-        <p className="text-sm text-gray-500 mb-4">
-          {token ? "Token found! Verifying your account." : "No token found in the URL."}
-        </p>
+      {content && <p className="text-sm text-gray-600 mb-4">{content}</p>}
+      {isLoading ? <div className={styles.spinner}></div> : null}
       </CardContent>
     </Card>
   );

@@ -1,22 +1,9 @@
 import { hashPassword } from "@/app/utils/hashing";
 import { connectToDatabase } from "@/lib/mongodb";
 import crypto from "crypto";
-
+import { createErrorResponse } from "@/app/utils/interfaces";
 function generateVerificationId() {
   return crypto.randomBytes(32).toString("hex"); // Generates a 64-character token
-}
-
-
-// Define custom error response structure
-interface ErrorMessage {
-  code: number;
-  message: string;
-  details?: string;
-}
-
-function createErrorResponse(code: number, message: string, details?: string): Response {
-  const error: ErrorMessage = { code, message, details };
-  return new Response(JSON.stringify(error), { status: code });
 }
 
 // Handle POST requests for user registration

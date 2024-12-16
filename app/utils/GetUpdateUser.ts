@@ -1,26 +1,9 @@
 import { connectToDatabase } from "@/lib/mongodb";
-
+import { User,createErrorResponse } from "./interfaces";
 // Define interfaces for type safety
-export interface User {
-  name: string;
-  universityName: string;
-  email: string;
-  password?: string;
-  emailVerified?: boolean;
-  VerificationId?: string;
-  vid?: string;
-}
-
-export interface ErrorMessage {
-  code: number;
-  message: string;
-  details?: string;
-}
 
 // Handle connection errors and responses
-function createErrorResponse(code: number, message: string, details?: string): ErrorMessage {
-  return { code, message, details };
-}
+
 
 /**
  * Fetch user data from database by dynamic key (email/vid) with specified fields only.
@@ -79,45 +62,67 @@ export async function deleteUserData(queryKey: keyof User, queryValue: string) {
  * Updates or inserts user fields or creates a new user if one doesn't already exist.
  * @param emailOrVID - Identifier for the user (email/vid).
  * @param data - Fields to insert or update.
+ *//**
+ * Updates or inserts user fields, or creates a new user if one doesn't exist.
+ * @param email - Identifier for the user (email).
+ * @param data - Fields to insert or update.
  */
-export async function updateUserData(emailOrVID: string, data: Partial<User>) {
+export async function updateUserData(email: string, data: Partial<User>) {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");
 
-    const identifierKey = data.email ? "email" : data.vid ? "vid" : undefined;
-
-    if (!identifierKey) {
-      return createErrorResponse(400, "Invalid identifier key provided.");
+    // Ensure the email is provided and valid
+    if (!email) {
+      return createErrorResponse(400, "Email is required.");
     }
 
-    const existingUser = await collection.findOne({ [identifierKey]: emailOrVID });
-
-    if (existingUser) {
-      const result = await collection.updateOne(
-        { [identifierKey]: emailOrVID },
-        { $set: data }
-      );
-
-      if (result.modifiedCount > 0) {
-        return { success: true, message: "User updated successfully", data };
-      }
-
-      return createErrorResponse(400, "No changes were made.");
-    }
-
-    const newUser = {
+    // Prepare the update or insert operation
+    const updateData = {
       ...data,
-      email: data.email || undefined,
-      vid: data.vid || undefined,
-      emailVerified: false,
+      email, // Ensure email remains consistent
     };
 
-    await collection.insertOne(newUser);
+    // Upsert user: update if exists, otherwise create
+    const result = await collection.updateOne(
+      { email }, // Search by email
+      { $set: updateData }, // Update or set new fields
+      { upsert: true } // Create if not found
+    );
 
-    return { success: true, message: "User created successfully", data: newUser };
+    if (result.upsertedCount > 0) {
+      return { success: true, message: "User created successfully.", data: updateData };
+    }
+
+    if (result.modifiedCount > 0) {
+      return { success: true, message: "User updated successfully.", data: updateData };
+    }
+
+    return createErrorResponse(400, "No changes were made.");
   } catch (error) {
     console.error("Error updating user data:", error);
     return createErrorResponse(500, "Failed to update user data.");
+  }
+}
+
+
+export async function removeUserField(email: string, fieldToRemove: keyof User) {
+  try {
+    const { db } = await connectToDatabase();
+
+    // Use email to find the user
+    const result = await db.collection("users").updateOne(
+      { email }, // Search only by email
+      { $unset: { [fieldToRemove]: "" } } // Remove the field specified
+    );
+
+    if (result.modifiedCount === 0) {
+      return createErrorResponse(404, "No user found or no field was removed.");
+    }
+
+    return { success: true, message: `Field '${fieldToRemove}' removed successfully.` };
+  } catch (error) {
+    console.error("Error removing user field:", error);
+    return createErrorResponse(500, "Failed to remove user field.");
   }
 }

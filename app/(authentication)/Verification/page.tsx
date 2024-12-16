@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { decrypt } from "@/app/utils/encryption";
-import styles from './auth.module.css';
+import styles from './spinner.module.css';
 import {
   Card,
   CardContent,

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { post } from "@/app/utils/PostGetData"; // Assuming you have a post function to send API requests
-import { decrypt, encrypt } from "@/app/utils/encryption";
+import { encrypt } from "@/app/utils/encryption";
 
 // Define interfaces for clarity
 interface LoginApiResponse {
@@ -92,7 +93,7 @@ export function Login() {
             } else {
                 setError(error?.error || "Something went wrong.");
             }
-        } catch (err) {
+        } catch (e) {
             setError("Failed to connect to the server. Please try again.");
         } finally {
             setIsLoading(false);

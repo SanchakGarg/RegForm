@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { compareHash } from "@/app/utils/hashing";
-import { decrypt, encrypt } from "@/app/utils/encryption";
+import {  encrypt } from "@/app/utils/encryption";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-256-bit-secret";
 

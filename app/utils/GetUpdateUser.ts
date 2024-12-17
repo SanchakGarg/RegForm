@@ -11,30 +11,59 @@ import { User,createErrorResponse } from "./interfaces";
  * @param queryValue - The value to query with.
  * @param fields - List of fields to fetch from database.
  */
-export async function fetchUserData(queryKey: keyof User, queryValue: string, fields: (keyof User)[]) {
+import { Document, WithId } from "mongodb";
+
+// Define return types
+interface FetchUserSuccess {
+  success: true;
+  data: WithId<Document>;
+}
+
+interface FetchUserError {
+  success: false;
+  message: string;
+  details?: string;
+}
+
+type FetchUserResponse = FetchUserSuccess | FetchUserError;
+
+/**
+ * Fetch user data from database by dynamic key (email/vid) with specified fields only.
+ */
+export async function fetchUserData(
+  queryKey: keyof User,
+  queryValue: string,
+  fields: (keyof User)[]
+): Promise<FetchUserResponse> {
   try {
     const { db } = await connectToDatabase();
 
-    // Create a projection object dynamically to limit fields fetched
-    const projection: Record<string, 1 | 0> = { _id: 0 }; // Explicitly exclude _id
-    fields.forEach((field) => {
-      projection[field] = 1; // Dynamically build the projection fields
-    });
+    // Build projection dynamically
+    const projection: Record<string, 1 | 0> = { _id: 0 };
+    fields.forEach((field) => (projection[field] = 1));
 
     const user = await db
       .collection("users")
       .findOne({ [queryKey]: queryValue }, { projection });
 
     if (!user) {
-      return createErrorResponse(404, "User not found", `No user found for ${queryKey}: ${queryValue}`);
+      return {
+        success: false,
+        message: "User not found",
+        details: `No user found for ${queryKey}: ${queryValue}`,
+      };
     }
 
     return { success: true, data: user };
   } catch (error) {
     console.error("Error fetching user data:", error);
-    return createErrorResponse(500, "Failed to fetch user data.");
+    return {
+      success: false,
+      message: "Failed to fetch user data.",
+    };
   }
 }
+
 
 /**
  * Delete user data by dynamic identifier (email/vid).

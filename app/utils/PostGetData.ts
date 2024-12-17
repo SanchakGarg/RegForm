@@ -12,7 +12,7 @@ export async function post<T>(
         },
         body: JSON.stringify(body),
       });
-  
+      console.log(body);
       const data = await response.json();
   
       if (!response.ok) {

@@ -24,7 +24,7 @@ export async function hashPassword(password: string, saltRounds: number = 10): P
  * @returns A promise that resolves to true if the passwords match, otherwise false.
  * @throws Will throw an error if the comparison process fails.
  */
-export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
+export async function compareHash(password: string, hashedPassword: string): Promise<boolean> {
   try {
     const isMatch = await bcrypt.compare(password, hashedPassword);
     return isMatch;

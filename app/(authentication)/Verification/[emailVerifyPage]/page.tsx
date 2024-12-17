@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { post } from "@/app/utils/PostGetData";
-import styles from '../spinner.module.css';
+import styles from '@/app/styles/spinner.module.css';
 
 export default function VerifyAccount() {
   const [token, setToken] = useState<string | null>(null);

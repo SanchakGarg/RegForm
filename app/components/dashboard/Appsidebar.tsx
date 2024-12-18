@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox } from "lucide-react"
+import { CreditCard , BookText ,LayoutDashboard  } from "lucide-react"
 import Image from "next/image";
 
 import {
@@ -18,17 +18,17 @@ const items = [
   {
     title: "Dashboard",
     url: "#",
-    icon: Home,
+    icon: LayoutDashboard,
   },
   {
     title: "Registeration Form",
     url: "#",
-    icon: Inbox,
+    icon: BookText,
   },
   {
     title: "Accomodation and payments",
     url: "#",
-    icon: Calendar,
+    icon: CreditCard,
   },
 //   {
 //     title: "Search",

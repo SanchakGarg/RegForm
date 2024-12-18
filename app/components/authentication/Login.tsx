@@ -71,10 +71,7 @@ export function Login() {
         try {
             // Make the API call to check if the email is verified and to authenticate
             const { data, error } = await post<LoginApiResponse>("/api/auth/login", { emaile: email,passworde:password });
-            console.log(error);
-            console.log(data);
             if (data) {
-                console.log(data);
                 if (data.success && data.emailverif == false) {
                     // If email is not verified, route to verification page
                     setError("Please verify your email before logging in.");

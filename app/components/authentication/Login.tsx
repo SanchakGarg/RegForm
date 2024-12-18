@@ -84,6 +84,7 @@ export function Login() {
                 }
                 
                 if (data.token) {
+                    console.log(data.token);
                     // If email is verified and login is successful, store the token
                     document.cookie = `authToken=${data.token}; path=/;`;
                     router.push("/dashboard"); // Redirect to the dashboard or desired page

@@ -18,17 +18,21 @@ const items = [
   {
     title: "Dashboard",
     url: "#",
+
     icon: LayoutDashboard,
+
   },
   {
     title: "Registeration Form",
     url: "#",
     icon: BookText,
+
   },
   {
     title: "Accomodation and payments",
     url: "#",
     icon: CreditCard,
+
   },
 //   {
 //     title: "Search",

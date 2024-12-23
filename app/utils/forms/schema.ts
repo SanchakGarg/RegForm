@@ -97,6 +97,8 @@ Field for selecting sports.
 */
 export const sportField = z.object({
     sports: z.enum(sports, { message: "Select a sport" }),
+   player1:z.object({ sports: z.enum(sports, { message: "Select a sport" }),}),
+   player2:z.object({ sports: z.enum(sports, { message: "Select a sport" }),}),
 });
 
 

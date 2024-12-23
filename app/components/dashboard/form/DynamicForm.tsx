@@ -71,6 +71,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
     resolver: zodResolver(schema),
     defaultValues: generateDefaultValues(schema),
   })
+  console.log(generateDefaultValues(schema));
 
   function onSubmit(data: z.infer<typeof schema>) {
     toast({
@@ -175,43 +176,39 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
     />
   );
 
-  const renderFormFields = (path: string[] = []) => {
-    return Object.entries(schema.shape).map(([key, field]) => {
-      const fieldPath = [...path, key].join(".");
-  
-      if (field instanceof ZodString) {
-        return <FormInput key={fieldPath} name={fieldPath} />;
-      }
-  
-      if (field instanceof ZodDate) {
-        return <FormDate key={fieldPath} name={fieldPath} />;
-      }
-  
-      if (field instanceof ZodEnum) {
-        const options = field.options.map((value: any) => ({ value, label: value }));
-        return <FormSelect key={fieldPath} name={fieldPath} options={options} />;
-      }
-  
-      if (field instanceof ZodObject) {
+  const renderFormFields = (schema: ZodObject<ZodRawShape>) => {
+    return Object.entries(schema.shape).map(([key, value]) => {
+      if (value instanceof ZodString) {
+        return <FormInput key={key} name={key} />;
+      } else if (value instanceof ZodDate) {
+        return <FormDate key={key} name={key} />;
+      } else if (value instanceof ZodEnum) {
+        const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
+          value: option,
+          label: option,
+        }));
+        return <FormSelect key={key} name={key} options={options} />;
+      } else if (value instanceof ZodObject) {
+        // For nested Zod objects, recursively call renderFormFields
         return (
-          <div key={fieldPath}>
-            <h3 className="text-lg font-bold mb-2">{key}</h3>
-            {renderFormFields([...path, key])}
+          <div key={key} className="nested-form">
+            <h3>{key}</h3>
+            {renderFormFields(value)}
           </div>
         );
       }
-  
-      // Handle unsupported fields
+      // Handle other types if needed
       return null;
     });
   };
+  
   
 
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   return (
     <Form {...form}>
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {renderFormFields()}
+      {renderFormFields(schema)}
       <Button type="submit">Submit</Button>
     </form>
   </Form>

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate,ZodEnum } from "zod"
+import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate,ZodEnum,ZodEffects } from "zod"
 
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -180,8 +180,17 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
   const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
     return Object.entries(schema.shape).map(([key, value]) => {
       const fieldPath = path ? `${path}.${key}` : key; // Generate the full path for the field
+      if (value instanceof ZodEffects) {
+        const baseSchema = value._def.schema;
   
-      if (value instanceof ZodString) {
+        // Process based on the base type
+        if (baseSchema instanceof ZodString) {
+          return <FormInput key={fieldPath} name={fieldPath} />;
+        } else if (baseSchema instanceof ZodDate) {
+          return <FormDate key={fieldPath} name={fieldPath} />;
+        }
+      }
+      else if (value instanceof ZodString) {
         return <FormInput key={fieldPath} name={fieldPath} />;
       } else if (value instanceof ZodDate) {
         return <FormDate key={fieldPath} name={fieldPath} />;

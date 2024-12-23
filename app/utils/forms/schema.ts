@@ -50,7 +50,7 @@ export const sports = [
 /*
 Common fields used across various containers in the schema.
 */
-const genericFields = z.object({
+export const genericFields = z.object({
     name: z.string().min(1, "Name is required"),
     date: z.date().refine(
         (date) => {
@@ -97,8 +97,6 @@ Field for selecting sports.
 */
 export const sportField = z.object({
     sports: z.enum(sports, { message: "Select a sport" }),
-   player1:z.object({ sports: z.enum(sports, { message: "Select a sport" }),}),
-   player2:z.object({ sports: z.enum(sports, { message: "Select a sport" }),}),
 });
 
 

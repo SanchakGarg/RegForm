@@ -2,8 +2,7 @@
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
 import { PopoverForm } from "@/app/components/dashboard/form/PopoverForm";  // Import the PopoverForm component
 import RenderForm from "@/app/components/dashboard/form/DynamicForm";
-import { coachFields, eventSchema, sportField } from "@/app/utils/forms/schema";
-import { z } from "zod"; 
+import { coachFields, eventSchema, genericFields, sportField } from "@/app/utils/forms/schema";
 export default function regForm() {
   return (
     <div className="h-screen w-full relative">
@@ -25,7 +24,7 @@ export default function regForm() {
         
 
       </div>
-      <RenderForm schema={sportField} />
+      <RenderForm schema={genericFields} />
 
     </div>
   );

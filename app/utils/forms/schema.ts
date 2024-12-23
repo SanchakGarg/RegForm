@@ -72,7 +72,7 @@ const genericFields = z.object({
 /*
 Specific fields for the coach details container.
 */
-const coachFields = z.object({
+export const coachFields = z.object({
     "name": z.string().min(1, "Name is required"),
     date: z.date().refine(
         (date) => {

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodTypeAny } from "zod"
+import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate,ZodEnum } from "zod"
 
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,27 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-
+interface FormSelectProps {
+  name: string;
+  options: { value: string; label: string }[]; // Array of options with value and label
+}
 // Function to generate default values for a Zod schema
 const generateDefaultValues = (schema: ZodObject<ZodRawShape>): Record<string, any> => {
   const defaultValues: Record<string, any> = {}
@@ -63,12 +82,139 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
       ),
     })
   }
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  // Render form fields based on the provided schema
+
+
+
+  const FormInput = ({ name }: { name: string; }) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{name}</FormLabel>
+          <FormControl>
+            <Input placeholder="shadcn" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )  // Render form fields based on the provided schema
+
+
+  const FormDate = ({name}:{name:string;}) => (
+    <FormField
+          control={form.control}
+          name={name}
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>{name}</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-[240px] pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+  )
+
+  const FormSelect = ({ name, options }: FormSelectProps) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{name}</FormLabel>
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
+  const renderFormFields = (path: string[] = []) => {
+    return Object.entries(schema.shape).map(([key, field]) => {
+      const fieldPath = [...path, key].join(".");
+  
+      if (field instanceof ZodString) {
+        return <FormInput key={fieldPath} name={fieldPath} />;
+      }
+  
+      if (field instanceof ZodDate) {
+        return <FormDate key={fieldPath} name={fieldPath} />;
+      }
+  
+      if (field instanceof ZodEnum) {
+        const options = field.options.map((value: any) => ({ value, label: value }));
+        return <FormSelect key={fieldPath} name={fieldPath} options={options} />;
+      }
+  
+      if (field instanceof ZodObject) {
+        return (
+          <div key={fieldPath}>
+            <h3 className="text-lg font-bold mb-2">{key}</h3>
+            {renderFormFields([...path, key])}
+          </div>
+        );
+      }
+  
+      // Handle unsupported fields
+      return null;
+    });
+  };
+  
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   return (
-    <div>
-      {/* Add your form rendering logic here */}
-    </div>
+    <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      {renderFormFields()}
+      <Button type="submit">Submit</Button>
+    </form>
+  </Form>
   )
 }
 

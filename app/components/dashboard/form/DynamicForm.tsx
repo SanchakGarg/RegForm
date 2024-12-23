@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate,ZodEnum } from "zod"
 
 import { toast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -36,6 +37,7 @@ interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[]; // Array of options with value and label
 }
+
 // Function to generate default values for a Zod schema
 const generateDefaultValues = (schema: ZodObject<ZodRawShape>): Record<string, any> => {
   const defaultValues: Record<string, any> = {}
@@ -71,18 +73,17 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
     resolver: zodResolver(schema),
     defaultValues: generateDefaultValues(schema),
   })
-  console.log(generateDefaultValues(schema));
 
   function onSubmit(data: z.infer<typeof schema>) {
+    console.log(data);
     toast({
       title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+      description: "SDKJBNKJ",
+    });
   }
+
+
+  
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
@@ -176,24 +177,26 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
     />
   );
 
-  const renderFormFields = (schema: ZodObject<ZodRawShape>) => {
+  const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
     return Object.entries(schema.shape).map(([key, value]) => {
+      const fieldPath = path ? `${path}.${key}` : key; // Generate the full path for the field
+  
       if (value instanceof ZodString) {
-        return <FormInput key={key} name={key} />;
+        return <FormInput key={fieldPath} name={fieldPath} />;
       } else if (value instanceof ZodDate) {
-        return <FormDate key={key} name={key} />;
+        return <FormDate key={fieldPath} name={fieldPath} />;
       } else if (value instanceof ZodEnum) {
         const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
           value: option,
           label: option,
         }));
-        return <FormSelect key={key} name={key} options={options} />;
+        return <FormSelect key={fieldPath} name={fieldPath} options={options} />;
       } else if (value instanceof ZodObject) {
         // For nested Zod objects, recursively call renderFormFields
         return (
-          <div key={key} className="nested-form">
+          <div key={fieldPath} className="nested-form">
             <h3>{key}</h3>
-            {renderFormFields(value)}
+            {renderFormFields(value, fieldPath)} {/* Pass the current path */}
           </div>
         );
       }

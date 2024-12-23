@@ -2,84 +2,22 @@
 /*
 Defines the core structure of form fields, containers, pages, sub-events, and the overall event schema.
 */
-interface FormField {
-    name: string; // Field identifier
-    label: string; // Display label for the field
-    type: "text" | "email" | "number" | "date" | "select"; // Input type
-    required: boolean; // Whether the field is mandatory
-    options?: string[]; // For select fields, options to display
-    validator?: (value: any) => string | null; // Custom validator (returns error message or null if valid)
-}
-
-interface FormFieldContainer {
-    title?: string; // Title of the container (e.g., "Coach Details" or "Player Details")
-    repeatable?: boolean; // Whether the container is repeatable
-    minRepeats?: number; // Minimum number of repeats
-    maxRepeats?: number; // Maximum number of repeats
-    fields: FormField[]; // List of fields in the container
-}
+import { z } from "zod";
 
 interface Page {
-    fields?: (FormField | FormFieldContainer)[]; // Fields or containers for the page
+    pageName: string;
+    fields: z.ZodObject<any>; // Fields for the pagez.ZodObject<any>
 }
 
-interface SubEventSchema {
-    eventName: string; // Name of the event
-    specificPages: Page[]; // List of specific pages for the event
+interface SubEvent {
+    eventName: string;
+    specificPages: Page[]; // Pages specific to this sub-event
 }
 
 interface EventSchema {
     commonPages: Page[]; // Common pages shared across all sub-events
-    subEvents: SubEventSchema[]; // Sub-events with specific pages
+    subEvents: SubEvent[]; // Sub-events with specific pages
 }
-
-// ---------- Validators ----------
-/*
-Custom validation functions for email, number, and date fields.
-*/
-const emailValidator = (value: any): string | null => {
-    if (typeof value !== "string" || value.trim() === "") {
-        return "This field must be a valid email address";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-        return "Invalid email address";
-    }
-    return null;
-};
-
-const numberValidator = (value: any): string | null => {
-    if (typeof value !== "number") {
-        return "This field must be a number";
-    }
-    if (value.toString().length > value) {
-        return `This field must not exceed ${value} digits`;
-    }
-    return null;
-};
-
-const dateValidator = (value: any): string | null => {
-    const minDate = new Date("1995-01-01");
-    const maxDate = new Date("2005-12-31");
-
-    if (typeof value !== "string" && !(value instanceof Date)) {
-        return "This field must be a valid date";
-    }
-
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-        return "Invalid date format";
-    }
-
-    if (date < minDate) {
-        return `Date must not be earlier than ${minDate.toDateString()}`;
-    }
-    if (date > maxDate) {
-        return `Date must not be later than ${maxDate.toDateString()}`;
-    }
-
-    return null;
-};
 
 // ---------- Sports List ----------
 /*
@@ -106,95 +44,91 @@ export const sports = [
     "8 Ball Pool (Men)",
     "Snooker (Men)",
     "Shooting",
-];
+] as const;
 
 // ---------- Generic Fields ----------
 /*
 Common fields used across various containers in the schema.
 */
-const genericFields: FormField[] = [
-    { name: "name", label: "Player Name", type: "text", required: true },
-    {
-        name: "DOB",
-        label: "Player Date of Birth",
-        type: "date",
-        required: true,
-        validator: dateValidator,
-    },
-    { name: "email", label: "Player Email", type: "email", required: true, validator: emailValidator },
-    {
-        name: "phoneNumber",
-        label: "Player Phone Number",
-        type: "number",
-        required: true,
-        validator: numberValidator,
-    },
-];
+const genericFields = z.object({
+    name: z.string().min(1, "Name is required"),
+    date: z.date().refine(
+        (date) => {
+            const currentDate = new Date();
+            const minDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+            const maxDate = new Date(currentDate.getFullYear() - 17, currentDate.getMonth(), currentDate.getDate());
+            return date >= minDate && date <= maxDate;
+        },
+        { message: "Date must be between 17 and 25 years ago" }
+    ),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().refine(
+        (phone) => /^[0-9]{10,15}$/.test(phone),
+        { message: "Phone number must be between 10 and 15 digits" }
+    ),
+});
 
 // ---------- Coach Fields ----------
 /*
 Specific fields for the coach details container.
 */
-const coachFields: FormField[] = [
-    { name: "name", label: "Coach Name", type: "text", required: true },
-    {
-        name: "gender",
-        label: "Coach Gender",
-        type: "select",
-        required: true,
-        options: ["Male", "Female", "Other"],
-    },
-    { name: "email", label: "Coach Email", type: "email", required: true, validator: emailValidator },
-    {
-        name: "phoneNumber",
-        label: "Coach Phone Number",
-        type: "number",
-        required: true,
-        validator: numberValidator,
-    },
-];
+const coachFields = z.object({
+    "name": z.string().min(1, "Name is required"),
+    date: z.date().refine(
+        (date) => {
+            const currentDate = new Date();
+            const minDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+            const maxDate = new Date(currentDate.getFullYear() - 17, currentDate.getMonth(), currentDate.getDate());
+            return date >= minDate && date <= maxDate;
+        },
+        { message: "Date must be between 17 and 25 years ago" }
+    ),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().refine(
+        (phone) => /^[0-9]{10,15}$/.test(phone),
+        { message: "Phone number must be between 10 and 15 digits" }
+    ),
+    gender: z.enum(["Male", "Female", "Other"], { message: "Gender is required" }),
+});
 
 // ---------- Sport Field ----------
 /*
 Field for selecting sports.
 */
-const sportField: FormField = {
-    name: "selectSports",
-    label: "Select Sports",
-    type: "select",
-    required: true,
-    options: sports,
-};
+export const sportField = z.object({
+    sports: z.enum(sports, { message: "Select a sport" }),
+});
 
+
+function arrayOfGenericFields(field:Record<string, any>,number:number){
+
+}
 // ---------- Event Schema ----------
 /*
 Defines the overall event schema including common pages and sub-events.
 */
+// ---------- Event Schema ----------
+// Defines the overall event schema including common pages and sub-events.
 export const eventSchema: EventSchema = {
     commonPages: [
         {
-            fields: [sportField],
+            pageName: "Sports Selection",
+            fields: sportField, // Directly use sportField, no need for .shape
         },
-    ],
+    ],  
     subEvents: [
         {
             eventName: "Basketball",
             specificPages: [
                 {
-                    fields: [
-                        {
-                            title: "Coach Details",
-                            fields: coachFields,
-                        },
-                        {
-                            title: "Player Details",
-                            repeatable: true,
-                            minRepeats: 2,
-                            maxRepeats: 12,
-                            fields: genericFields,
-                        },
-                    ],
-                },
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields, // Directly use coachFields (fixed capitalization)
+                        playerFields: z.array(genericFields)
+                            .min(2, "Fill details of minimum two players") // Minimum 2 players
+                            .max(7, "A maximum of 7 players are allowed"), // Maximum 7 players
+                    }),
+                }
             ],
         },
     ],

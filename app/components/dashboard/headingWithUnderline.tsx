@@ -22,7 +22,7 @@ export default function HeadingWithUnderline({
 
         {/* Static Responsive Underline */}
         <div
-          className="bg-gray-800 h-1 mx-auto mt-5 sm:mt-4 md:mt-6 w-3/4 md:w-1/2 lg:w-3/5"
+          className="bg-gray-800 h-1 mx-auto mt-5 sm:mt-4 md:mt-6 w-3/4 md:w-1/2 lg:w-2/6"
         />
       </div>
     </div>

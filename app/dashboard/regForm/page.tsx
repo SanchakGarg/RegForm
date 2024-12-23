@@ -1,16 +1,25 @@
+// regForm.tsx
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
+import { PopoverForm } from "@/app/components/dashboard/form/PopoverForm";  // Import the PopoverForm component
 
-export default function regForm() { 
-    return (
-      <div className="h-screen relative">
-        <div>
-        <HeadingWithUnderline 
+export default function regForm() {
+  return (
+    <div className="h-screen w-full relative">
+      {/* Heading */}
+      <div className="w-full">
+        <HeadingWithUnderline
           text="Registration Forms"
           desktopSize="md:text-6xl"
           mobileSize="text-3xl sm:text-2xl"
         />
-        </div>
-        
       </div>
-    );
+
+      {/* Button and Alert Dialog */}
+      <div className="flex justify-end">
+        <div className="pr-5">
+          <PopoverForm />  {/* Calling PopoverForm */}
+        </div>
+      </div>
+    </div>
+  );
 }

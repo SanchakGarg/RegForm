@@ -61,7 +61,7 @@ const generateDefaultValues = (schema: ZodObject<ZodRawShape>): Record<string, a
       defaultValues[key] = []
     } else {
       // For other types, set null as the default
-      defaultValues[key] = null
+      defaultValues[key] = ""
     }
   }
 

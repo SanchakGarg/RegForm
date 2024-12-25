@@ -6,7 +6,7 @@ import { z } from "zod";
 
 interface Page {
     pageName: string;
-    fields: z.ZodObject<any>; // Fields for the pagez.ZodObject<any>
+    fields: z.ZodObject<any>;
 }
 
 interface SubEvent {
@@ -16,7 +16,7 @@ interface SubEvent {
 
 interface EventSchema {
     commonPages: Page[]; // Common pages shared across all sub-events
-    subEvents: SubEvent[]; // Sub-events with specific pages
+    subEvents: Record<string, SubEvent>; // Sub-events keyed by their names
 }
 
 // ---------- Sports List ----------
@@ -73,7 +73,7 @@ export const genericFields = z.object({
 Specific fields for the coach details container.
 */
 export const coachFields = z.object({
-    "name": z.string().min(1, "Name is required"),
+    name: z.string().min(1, "Name is required"),
     date: z.date().refine(
         (date) => {
             const currentDate = new Date();
@@ -99,37 +99,45 @@ export const sportField = z.object({
     sports: z.enum(sports, { message: "Select a sport" }),
 });
 
-
-function arrayOfGenericFields(field:Record<string, any>,number:number){
-
-}
 // ---------- Event Schema ----------
 /*
 Defines the overall event schema including common pages and sub-events.
 */
-// ---------- Event Schema ----------
-// Defines the overall event schema including common pages and sub-events.
 export const eventSchema: EventSchema = {
     commonPages: [
         {
             pageName: "Sports Selection",
-            fields: sportField, // Directly use sportField, no need for .shape
+            fields: sportField,
         },
-    ],  
-    subEvents: [
-        {
+    ],
+    subEvents: {
+        Basketball: {
             eventName: "Basketball",
             specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
-                        coachFields, // Directly use coachFields (fixed capitalization)
+                        coachFields, // Directly use coachFields
                         playerFields: z.array(genericFields)
                             .min(2, "Fill details of minimum two players") // Minimum 2 players
                             .max(7, "A maximum of 7 players are allowed"), // Maximum 7 players
                     }),
-                }
+                },
             ],
         },
-    ],
+        Football: {
+            eventName: "Football",
+            specificPages: [
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(genericFields)
+                            .min(11, "Fill details of minimum eleven players")
+                            .max(15, "A maximum of 15 players are allowed"),
+                    }),
+                },
+            ],
+        },
+    },
 };

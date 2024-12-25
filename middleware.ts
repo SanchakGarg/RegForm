@@ -38,7 +38,7 @@ export async function middleware(req: NextRequest) {
 }
 
 // Token validation with inline typing
-async function validateToken(token: string): Promise<boolean> {
+async function  validateToken(token: string): Promise<boolean> {
   const response = await post<{ success: boolean }>(`${process.env.ROOT_URL}api/auth/middleware`, { tokene: token });
 
   if (response.error) {

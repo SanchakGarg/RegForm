@@ -1,5 +1,7 @@
 "use client"
 // PopoverForm.tsx
+import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import { useForm } from "react-hook-form"
 import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects } from "zod"
 
 import { toast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -46,54 +48,53 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { post } from "@/app/utils/PostGetData";
+import { cookies } from "next/headers";
 interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[]; // Array of options with value and label
 }
-
-// Function to generate default values for a Zod schema
-const generateDefaultValues = (schema: ZodObject<ZodRawShape>): Record<string, any> => {
-  const defaultValues: Record<string, any> = {}
-
-  // Iterate through each field in the schema
-  for (const [key, value] of Object.entries(schema.shape)) {
-    if (value instanceof ZodObject) {
-      // If the field is a nested Zod object, recursively generate default values for it
-      defaultValues[key] = generateDefaultValues(value)
-    } else if (value instanceof ZodString) {
-      // If the field is a string, set an empty string as the default
-      defaultValues[key] = ''
-    } else if (value instanceof ZodNumber) {
-      // If the field is a number, set 0 as the default
-      defaultValues[key] = 0
-    } else if (value instanceof ZodBoolean) {
-      // If the field is a boolean, set false as the default
-      defaultValues[key] = false
-    } else if (value instanceof ZodArray) {
-      // If the field is an array, set an empty array as the default
-      defaultValues[key] = []
-    } else {
-      // For other types, set null as the default
-      defaultValues[key] = ""
-    }
-  }
-
-  return defaultValues
-}
-
 const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) => {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: generateDefaultValues(schema),
   })
+  const getAuthToken = (): string | null => {
+    const cookies = document.cookie.split("; ");
+    const authToken = cookies.find(cookie => cookie.startsWith("authToken="));
+    return authToken ? authToken.split("=")[1] : null;
+  };
 
-  function onSubmit(data: z.infer<typeof schema>) {
-    console.log(data);
-    toast({
-      title: "You submitted the following values:",
-      description: "SDKJBNKJ",
-    });
+  async function onSubmit(data: z.infer<typeof schema>) {
+    setIsSubmitting(true);
+
+    try {
+      const response = await post<{ success: boolean; formId?: string }>(`/api/form/addForm`, {
+        data,
+        cookies: getAuthToken,
+      });
+
+      if (response.data?.success && response.data?.formId) {
+        // Redirect to /?formId=formId
+        
+        router.push(`/dashboard/regForm/form?formId=${response.data?.formId}`);
+      } else {
+        setIsSubmitting(false);
+        // Show a success toast in case the formId is not returned
+
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      setIsSubmitting(false);
+    } finally {
+      //  // Reset loading state
+    }
   }
+
+
 
 
 
@@ -245,13 +246,19 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schem
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {renderFormFields(schema)}
+            <div className="flex justify-end space-x-2">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            </div>
           </form>
         </Form>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button type="submit" form="form-id">Continue</Button>
-          </AlertDialogAction>        </AlertDialogFooter>
+
       </AlertDialogContent>
     </AlertDialog>
 

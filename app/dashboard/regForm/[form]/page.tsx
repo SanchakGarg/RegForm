@@ -2,8 +2,7 @@ import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderlin
 import { eventSchema } from "@/app/utils/forms/schema";
 import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
 export default function SignUpPage() {
-  console.log(generateDefaultValues(eventSchema.subEvents.Basketball.specificPages[0].fields));
-
+console.log(generateDefaultValues(eventSchema.subEvents.Basketball.specificPages[0].fields));
   return (
     <div className="h-screen">
        <HeadingWithUnderline 

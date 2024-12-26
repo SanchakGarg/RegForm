@@ -1,5 +1,6 @@
 "use client"
 // PopoverForm.tsx
+import { eventSchema } from "@/app/utils/forms/schema";
 import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
 import { useRouter } from "next/navigation";
 import {
@@ -50,11 +51,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { post } from "@/app/utils/PostGetData";
 import { cookies } from "next/headers";
+import { formMeta } from "@/app/utils/forms/schema";
 interface FormSelectProps {
   name: string;
-  options: { value: string; label: string }[]; // Array of options with value and label
+  options: { value: string; label: string }[];
+  label:string;
+  placeholder:string; // Array of options with value and label
 }
-const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) => {
+const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>,meta:formMeta }> = ({ schema,meta }) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -103,132 +107,131 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schem
 
 
 
-  const FormInput = ({ name }: { name: string; }) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{name}</FormLabel>
-          <FormControl>
-            <Input placeholder="shadcn" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )  // Render form fields based on the provided schema
-
-
-  const FormDate = ({ name }: { name: string; }) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="flex flex-col">
-          <FormLabel>{name}</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[240px] pl-3 text-left font-normal",
-                    !field.value && "text-muted-foreground"
-                  )}
-                >
-                  {field.value ? (
-                    format(field.value, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={field.onChange}
-                disabled={(date) =>
-                  date > new Date() || date < new Date("1900-01-01")
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  const FormSelect = ({ name, options }: FormSelectProps) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{name}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+  const FormInput = ({ name,label,placeholder }: { name: string;label:string;placeholder:string; }) => (
+      <FormField
+        control={form.control}
+        name={name}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="font-bold">{label}</FormLabel>
             <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
+              <Input placeholder={placeholder} {...field} />
             </FormControl>
-            <SelectContent className="max-h-60 overflow-y-auto z-50">
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-
-  const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
-    return Object.entries(schema.shape).map(([key, value]) => {
-      const fieldPath = path ? `${path}.${key}` : key; // Generate the full path for the field
-      if (value instanceof ZodEffects) {
-        const baseSchema = value._def.schema;
-
-        // Process based on the base type
-        if (baseSchema instanceof ZodString) {
-          return <FormInput key={fieldPath} name={fieldPath} />;
-        } else if (baseSchema instanceof ZodDate) {
-          return <FormDate key={fieldPath} name={fieldPath} />;
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    )  // Render form fields based on the provided schema
+  
+  
+    const FormDate = ({name,label,placeholder}:{name:string;label:string;placeholder:string;}) => (
+      <FormField
+            control={form.control}
+            name={name}
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="font-bold">{label}</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>{placeholder}</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+    )
+  
+    const FormSelect = ({ name, options,label,placeholder }: FormSelectProps,) => (
+      <FormField
+        control={form.control}
+        name={name}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="font-bold">{label}</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  
+    const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
+      return Object.entries(schema.shape).map(([key, value]) => {
+        const fieldPath = path ? `${path}.${key}` : key;
+        if (value instanceof ZodEffects) {
+          const baseSchema = value._def.schema;
+    
+          // Process based on the base type
+          if (baseSchema instanceof ZodString) {
+            return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
+          } else if (baseSchema instanceof ZodDate ) {
+            return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
+          }
         }
-      }
-      else if (value instanceof ZodString) {
-        return <FormInput key={fieldPath} name={fieldPath} />;
-      } else if (value instanceof ZodDate) {
-        return <FormDate key={fieldPath} name={fieldPath} />;
-      } else if (value instanceof ZodEnum) {
-        const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
-          value: option,
-          label: option,
-        }));
-        return <FormSelect key={fieldPath} name={fieldPath} options={options} />;
-      } else if (value instanceof ZodObject) {
-        // For nested Zod objects, recursively call renderFormFields
-        return (
-          <div key={fieldPath} className="nested-form">
-            <h3>{key}</h3>
-            {renderFormFields(value, fieldPath)} {/* Pass the current path */}
-          </div>
-        );
-      }
-      // Handle other types if needed
-      return null;
-    });
-  };
-
-
+        else if (value instanceof ZodString) {
+          return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
+        } else if (value instanceof ZodDate) {
+          return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
+        } else if (value instanceof ZodEnum) {
+          const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
+            value: option,
+            label: option,
+          }));
+          return <FormSelect key={fieldPath} name={fieldPath} options={options} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
+        } else if (value instanceof ZodObject) {
+          // For nested Zod objects, recursively call renderFormFields
+          return (
+            <div key={fieldPath} className="nested-form">
+              <h3>{key}</h3>
+              {renderFormFields(value, fieldPath)} {/* Pass the current path */}
+            </div>
+          );
+        }
+        // Handle other types if needed
+        return null;
+      });
+    };
+    
 
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   return (

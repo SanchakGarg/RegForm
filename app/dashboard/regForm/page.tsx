@@ -2,7 +2,7 @@
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
 import  RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm";  // Import the PopoverForm component
 import RenderForm from "@/app/components/dashboard/form/DynamicForm";
-import { coachFields, eventSchema, genericFields, sportField } from "@/app/utils/forms/schema";
+import { coachFields, eventSchema, genericFields, genericMeta, sportField } from "@/app/utils/forms/schema";
 export default function regForm() {
   return (
     <div className="h-screen w-full relative">
@@ -19,11 +19,13 @@ export default function regForm() {
       {/* Button and Alert Dialog */}
       <div className="flex justify-end">
         <div className="pr-5">
-          <RenderPopoverForm schema={eventSchema.commonPages[0].fields} />  {/* Calling PopoverForm */}
+          <RenderPopoverForm schema={eventSchema.commonPages[0].fields} meta={eventSchema.commonPages[0].meta} />  {/* Calling PopoverForm */}
         </div>
 
 
       </div>
+      <RenderForm schema={eventSchema.subEvents.Football.specificPages[0].fields} meta={eventSchema.subEvents.Football.specificPages[0].meta} />  {/* Calling PopoverForm */}
+
     </div>
   );
 }

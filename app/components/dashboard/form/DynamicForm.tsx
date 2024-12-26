@@ -1,12 +1,11 @@
 "use client"
-
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate,ZodEnum,ZodEffects } from "zod"
-import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues"
-import { toast } from "@/hooks/use-toast"
-import { useState } from "react";
-import { Button } from "@/components/ui/button"
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
+import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,35 +14,95 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/form";
+import { Calendar } from "@/components/ui/calendar";
+import { addYears, format, min } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { formMeta } from "@/app/utils/forms/schema";
+import { Label } from "@radix-ui/react-label";
+
 interface FormSelectProps {
   name: string;
-  options: { value: string; label: string }[]; // Array of options with value and label
+  options: { value: string; label: string }[];
+  label: string;
+  placeholder: string;
 }
 
-const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, meta }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [arrayFieldCounts, setArrayFieldCounts] = useState<Record<string, number>>({});
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: generateDefaultValues(schema),
-  })
+    // defaultValues: generateDefaultValues(schema),
+  });
+  const addFieldToArray = useCallback(
+    (fieldPath: string, min: number) => {
+      setArrayFieldCounts((prev) => ({
+        ...prev,
+        [fieldPath]: prev[fieldPath] != null ? prev[fieldPath] + 1 : min + 1,
+      }));
+    },
+    [setArrayFieldCounts]
+  );
+  const removeFieldToArray = useCallback(
+    (fieldPath: string) => {
+      const currentCount = arrayFieldCounts[fieldPath] || 0;
+
+      if (currentCount > 0) {
+        const indexToRemove = currentCount - 1;
+        
+        // Get the current form values
+        const currentValues = form.getValues();
+        
+        // Parse the field path to handle nested arrays correctly
+        const pathSegments = fieldPath.split('.');
+        const arrayFieldName = pathSegments[pathSegments.length - 1];
+        
+        // Get the parent object containing the array
+        let parentObject = currentValues;
+        for (let i = 0; i < pathSegments.length - 1; i++) {
+          parentObject = parentObject[pathSegments[i]];
+        }
+        
+        // If the array exists in the parent object
+        if (Array.isArray(parentObject[arrayFieldName])) {
+          // Remove the last element from the array
+          parentObject[arrayFieldName].splice(indexToRemove, 1);
+          
+          // Unregister all fields for the removed index
+          Object.keys(form.getValues())
+            .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
+            .forEach(key => {
+              form.unregister(key);
+            });
+          
+          // Update form values
+          form.reset(currentValues);
+        }
+        
+        // Update array count
+        setArrayFieldCounts(prev => ({
+          ...prev,
+          [fieldPath]: currentCount - 1
+        }));
+      }
+    },
+    [arrayFieldCounts, form]
+  );
 
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsSubmitting(true); // Set loading state to true
@@ -60,154 +119,313 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape> }> = ({ schema }) =>
     }
   }
 
-  
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  const FormInput = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => (
+    <FormField control={form.control} name={name} render={({ field }) => (
+      <FormItem>
+        <FormLabel className="font-bold">{label}</FormLabel>
+        <FormControl>
+          <Input placeholder={placeholder} {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )} />
+  ));
+
+  const FormDate = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => {
+    const currentDate = new Date();
+
+    // Define the range of valid dates
+    const minDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+    const maxDate = new Date(currentDate.getFullYear() - 17, currentDate.getMonth(), currentDate.getDate());
+
+    const [selectedDate, setSelectedDate] = React.useState<Date>();
+    const [selectedYear, setSelectedYear] = React.useState<number | null>(null);
+    const [selectedMonth, setSelectedMonth] = React.useState<number | null>(null);
+    const [calendarMonth, setCalendarMonth] = React.useState<Date | undefined>();
+
+    const yearOptions = Array.from(
+      { length: maxDate.getFullYear() - minDate.getFullYear() + 1 },
+      (_, i) => minDate.getFullYear() + i
+    );
+
+    // Month options
+    const monthOptions = Array.from({ length: 12 }, (_, i) => ({
+      value: i,
+      label: new Date(0, i).toLocaleString("default", { month: "long" }),
+    }));
+
+    const handleYearChange = (year: number) => {
+      const newDate = calendarMonth
+        ? new Date(calendarMonth.setFullYear(year))
+        : new Date(year, selectedMonth || 0, 1);
+      setCalendarMonth(newDate);
+      setSelectedYear(year);
+    };
+
+    const handleMonthChange = (month: number) => {
+      const newDate = calendarMonth
+        ? new Date(calendarMonth.setMonth(month))
+        : new Date(selectedYear || currentDate.getFullYear(), month, 1);
+      setCalendarMonth(newDate);
+      setSelectedMonth(month);
+    };
+
+    return (
+      <FormField
+        control={form.control}
+        name={name}
+        render={({ field }) => (
+          <FormItem className="flex flex-col pt-2">
+            <FormLabel className="font-bold">{label}</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant={"outline"}
+                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                  >
+                    {selectedDate ? format(selectedDate, "PPP") : <span>{placeholder}</span>}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4" align="start">
+                <div className="flex gap-2 mb-4">
+                  {/* Year Selector */}
+                  <Select
+                    onValueChange={(value) => {
+                      const year = parseInt(value);
+                      handleYearChange(year);
+                    }}
+                    value={selectedYear ? String(selectedYear) : undefined}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {yearOptions.map((year) => (
+                        <SelectItem key={year} value={String(year)}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Month Selector */}
+                  <Select
+                    onValueChange={(value) => {
+                      const month = parseInt(value);
+                      handleMonthChange(month);
+                    }}
+                    value={selectedMonth !== null ? String(selectedMonth) : undefined}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map((month) => (
+                        <SelectItem key={month.value} value={String(month.value)}>
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Calendar Component */}
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date || undefined);
+                    field.onChange(date); // Sync with form state
+                  }}
+                  disabled={(date) => date < minDate || date > maxDate}
+                  month={calendarMonth}
+                  onMonthChange={(newMonth) => {
+                    setCalendarMonth(newMonth);
+                    setSelectedYear(newMonth.getFullYear());
+                    setSelectedMonth(newMonth.getMonth());
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  });
 
 
 
-
-  const FormInput = ({ name }: { name: string; }) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{name}</FormLabel>
+  const FormSelect = React.memo(({ name, options, label, placeholder }: FormSelectProps) => (
+    <FormField control={form.control} name={name} render={({ field }) => (
+      <FormItem>
+        <FormLabel className="font-bold">{label}</FormLabel>
+        <Select onValueChange={field.onChange} defaultValue={field.value}>
           <FormControl>
-            <Input placeholder="shadcn" {...field} />
+            <SelectTrigger>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
           </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )  // Render form fields based on the provided schema
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )} />
+  ));
 
 
-  const FormDate = ({name}:{name:string;}) => (
-    <FormField
-          control={form.control}
-          name={name}
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>{name}</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-  )
 
-  const FormSelect = ({ name, options }: FormSelectProps) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{name}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
 
-  const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
-    return Object.entries(schema.shape).map(([key, value]) => {
-      const fieldPath = path ? `${path}.${key}` : key; // Generate the full path for the field
-      if (value instanceof ZodEffects) {
-        const baseSchema = value._def.schema;
-  
-        // Process based on the base type
-        if (baseSchema instanceof ZodString) {
-          return <FormInput key={fieldPath} name={fieldPath} />;
-        } else if (baseSchema instanceof ZodDate) {
-          return <FormDate key={fieldPath} name={fieldPath} />;
-        }
+
+
+
+
+
+  const getNestedMetaValue = (meta: any, path: string, key: string) => {
+    const keys = path.split('.');
+    let current = meta;
+
+    for (const k of keys) {
+      if (current[k] !== undefined) {
+        current = current[k];
+      } else {
+        throw new Error(`Key "${k}" not found in meta at path "${path}"`);
       }
-      else if (value instanceof ZodString) {
-        return <FormInput key={fieldPath} name={fieldPath} />;
-      } else if (value instanceof ZodDate) {
-        return <FormDate key={fieldPath} name={fieldPath} />;
-      } else if (value instanceof ZodEnum) {
-        const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
+    }
+    return current[key];
+  };
+
+
+
+  const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "", metapath = "") => {
+    return Object.entries(schema.shape).map(([key, value]) => {
+      const fieldPath = path ? `${path}.${key}` : key;
+      const metafieldpath = metapath ? `${metapath}.${key}` : key;
+  
+      let baseSchema = value;
+  
+      if (value instanceof ZodOptional) {
+        baseSchema = value._def.innerType;
+      }
+  
+      if (baseSchema instanceof ZodEffects) {
+        baseSchema = baseSchema._def.schema;
+      }
+  
+      if (baseSchema instanceof ZodString) {
+        return (
+          <FormInput
+            key={fieldPath}
+            name={fieldPath}
+            label={getNestedMetaValue(meta, metafieldpath, "label") as string}
+            placeholder={getNestedMetaValue(meta, metafieldpath, "placeholder") as string}
+          />
+        );
+      } else if (baseSchema instanceof ZodDate) {
+        return (
+          <FormDate
+            key={fieldPath}
+            name={fieldPath}
+            label={getNestedMetaValue(meta, metafieldpath, "label") as string}
+            placeholder={getNestedMetaValue(meta, metafieldpath, "placeholder") as string}
+          />
+        );
+      } else if (baseSchema instanceof ZodEnum) {
+        const options = (baseSchema as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
           value: option,
           label: option,
         }));
-        return <FormSelect key={fieldPath} name={fieldPath} options={options} />;
-      } else if (value instanceof ZodObject) {
-        // For nested Zod objects, recursively call renderFormFields
+        return (
+          <FormSelect
+            key={fieldPath}
+            name={fieldPath}
+            options={options}
+            label={getNestedMetaValue(meta, metafieldpath, "label") as string}
+            placeholder={getNestedMetaValue(meta, metafieldpath, "placeholder") as string}
+          />
+        );
+      } else if (baseSchema instanceof ZodObject) {
         return (
           <div key={fieldPath} className="nested-form">
             <h3>{key}</h3>
-            {renderFormFields(value, fieldPath)} {/* Pass the current path */}
+            {renderFormFields(baseSchema, fieldPath, metafieldpath)}
+          </div>
+        );
+      } else if (baseSchema instanceof ZodArray) {
+        const min = baseSchema._def.minLength?.value ?? 0;
+        const arrayCount = arrayFieldCounts[fieldPath] || min;
+        const max = baseSchema._def.maxLength?.value ?? Infinity;
+  
+        const arrayFields = Array.from({ length: arrayCount }, (_, index) => {
+          const fieldName = `${fieldPath}[${index}]`;
+          return renderFormFields(baseSchema._def.type, fieldName, fieldPath);
+        });
+  
+        return (
+          <div key={fieldPath} className="nested-form">
+            <h3>{fieldPath}</h3>
+            {arrayFields}
+            {arrayCount < max && (
+              <Button type="button" onClick={() => addFieldToArray(fieldPath, min)} className="mt-2">
+                Add Field
+              </Button>
+            )}
+            {arrayCount > min && (
+              <Button type="button" onClick={() => removeFieldToArray(fieldPath)} className="mt-2">
+                Remove Field
+              </Button>
+            )}
           </div>
         );
       }
-      // Handle other types if needed
+  
       return null;
     });
   };
   
-  
 
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts]);
+
   return (
     <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {renderFormFields(schema)}
-      <Button type="submit" disabled={isSubmitting}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+        {memoizedFormFields}
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
           ) : (
             "Submit"
           )}
         </Button>
-    </form>
-  </Form>
-  )
-}
+      </form>
+    </Form>
+  );
+};
 
-export default RenderForm
+export default RenderForm;

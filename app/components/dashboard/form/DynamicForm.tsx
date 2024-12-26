@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { formMeta } from "@/app/utils/forms/schema";
 import { Label } from "@radix-ui/react-label";
+import { title } from "process";
 
 interface FormSelectProps {
   name: string;
@@ -42,12 +43,16 @@ interface FormSelectProps {
   placeholder: string;
 }
 
-const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, meta }) => {
+const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, draftSchema, meta }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
+
   const [arrayFieldCounts, setArrayFieldCounts] = useState<Record<string, number>>({});
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    // defaultValues: generateDefaultValues(schema),
+  const [isSaveDraft, setIsSaveDraft] = useState(false);
+  const formSchema = isSaveDraft ? draftSchema : schema;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    // defaultValues: generateDefaultValues(formSchema),
   });
   const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
@@ -60,64 +65,83 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
   );
   const removeFieldToArray = useCallback(
     (fieldPath: string) => {
-      const currentCount = arrayFieldCounts[fieldPath] || 0;
+      const currentCount = arrayFieldCounts[fieldPath] || 0; // Get the current count
 
       if (currentCount > 0) {
-        const indexToRemove = currentCount - 1;
-        
-        // Get the current form values
-        const currentValues = form.getValues();
-        
-        // Parse the field path to handle nested arrays correctly
-        const pathSegments = fieldPath.split('.');
-        const arrayFieldName = pathSegments[pathSegments.length - 1];
-        
-        // Get the parent object containing the array
-        let parentObject = currentValues;
-        for (let i = 0; i < pathSegments.length - 1; i++) {
-          parentObject = parentObject[pathSegments[i]];
-        }
-        
-        // If the array exists in the parent object
-        if (Array.isArray(parentObject[arrayFieldName])) {
-          // Remove the last element from the array
-          parentObject[arrayFieldName].splice(indexToRemove, 1);
-          
-          // Unregister all fields for the removed index
-          Object.keys(form.getValues())
-            .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
-            .forEach(key => {
-              form.unregister(key);
-            });
-          
-          // Update form values
-          form.reset(currentValues);
-        }
-        
-        // Update array count
-        setArrayFieldCounts(prev => ({
+        const indexToRemove = currentCount - 1; // Identify the last index
+
+        // Unregister all fields for the last index
+        const unregisterPaths = Object.keys(form.getValues())
+          .filter((key) => key.startsWith(`${fieldPath}[${indexToRemove}]`));
+
+        unregisterPaths.forEach((path) => form.unregister(path)); // Unregister each field
+
+        // Update the array count
+        setArrayFieldCounts((prev) => ({
           ...prev,
-          [fieldPath]: currentCount - 1
+          [fieldPath]: currentCount - 1,
         }));
+
+        // Optional: Reset form state if necessary
+        const updatedValues = { ...form.getValues() };
+        unregisterPaths.forEach((path) => {
+          const keys = path.split('.'); // Split the nested path
+          let current = updatedValues;
+          keys.forEach((key, idx) => {
+            if (idx === keys.length - 1) {
+              delete current[key]; // Delete the last key
+            } else {
+              current = current[key];
+            }
+          });
+        });
+
+        form.reset(updatedValues); // Reset form state
       }
     },
     [arrayFieldCounts, form]
   );
 
-  async function onSubmit(data: z.infer<typeof schema>) {
-    setIsSubmitting(true); // Set loading state to true
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+     // Set loading state to true
     try {
-      console.log(data);
-      toast({
-        title: "Submission Successful",
-        description: "Your form data has been submitted.",
-      });
+      if (isSaveDraft) {
+        setIsSubmittingDraft(true);
+        // Handle saving the draft data (e.g., save to localStorage or draft API)
+        console.log('Saving Draft:', data);
+        toast({
+          title: "Draft Saved",
+          description: "Your form draft has been saved.",
+        });
+      } else {
+        setIsSubmitting(true);
+        // Handle form submission (e.g., submit to API)
+        console.log('Form Submitted:', data);
+        toast({
+          title: "Submission Successful",
+          description: "Your form data has been submitted.",
+        });
+      }
     } catch (error) {
       console.error("Submission error:", error);
     } finally {
+      setIsSubmittingDraft(false);
       setIsSubmitting(false); // Reset loading state
     }
   }
+
+  // Button click handler to toggle save draft
+  const handleSaveDraftClick = () => {
+
+    setIsSaveDraft(true);  // Set to Save Draft mode
+    form.handleSubmit(onSubmit)(); // Submit draft form
+  };
+
+  // Button click handler to toggle form submission
+  const handleSubmitClick = () => {
+    setIsSaveDraft(false); // Set to regular Submit mode
+    form.handleSubmit(onSubmit)(); // Submit form
+  };
 
   const FormInput = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => (
     <FormField control={form.control} name={name} render={({ field }) => (
@@ -297,7 +321,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
       if (current[k] !== undefined) {
         current = current[k];
       } else {
-        throw new Error(`Key "${k}" not found in meta at path "${path}"`);
+        return "";
       }
     }
     return current[key];
@@ -309,17 +333,17 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
     return Object.entries(schema.shape).map(([key, value]) => {
       const fieldPath = path ? `${path}.${key}` : key;
       const metafieldpath = metapath ? `${metapath}.${key}` : key;
-  
+
       let baseSchema = value;
-  
+
       if (value instanceof ZodOptional) {
         baseSchema = value._def.innerType;
       }
-  
+
       if (baseSchema instanceof ZodEffects) {
         baseSchema = baseSchema._def.schema;
       }
-  
+
       if (baseSchema instanceof ZodString) {
         return (
           <FormInput
@@ -353,9 +377,10 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
           />
         );
       } else if (baseSchema instanceof ZodObject) {
+
         return (
           <div key={fieldPath} className="nested-form">
-            <h3>{key}</h3>
+            <h3 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-2">{getNestedMetaValue(meta, fieldPath + ".title", "label")}</h3>
             {renderFormFields(baseSchema, fieldPath, metafieldpath)}
           </div>
         );
@@ -363,34 +388,51 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
         const min = baseSchema._def.minLength?.value ?? 0;
         const arrayCount = arrayFieldCounts[fieldPath] || min;
         const max = baseSchema._def.maxLength?.value ?? Infinity;
-  
+
         const arrayFields = Array.from({ length: arrayCount }, (_, index) => {
           const fieldName = `${fieldPath}[${index}]`;
-          return renderFormFields(baseSchema._def.type, fieldName, fieldPath);
+          return (
+            <div key={fieldPath + fieldName} className="pt-5">
+              <h1 className="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">
+                Player-{index + 1}
+              </h1>
+              {renderFormFields(baseSchema._def.type, fieldName, fieldPath)}
+            </div>
+          )
         });
-  
+
         return (
           <div key={fieldPath} className="nested-form">
-            <h3>{fieldPath}</h3>
+            <h3 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-2">{getNestedMetaValue(meta, fieldPath + ".title", "label")}</h3>
             {arrayFields}
-            {arrayCount < max && (
-              <Button type="button" onClick={() => addFieldToArray(fieldPath, min)} className="mt-2">
-                Add Field
-              </Button>
-            )}
-            {arrayCount > min && (
-              <Button type="button" onClick={() => removeFieldToArray(fieldPath)} className="mt-2">
-                Remove Field
-              </Button>
-            )}
+            <div className="flex justify-center gap-4 mt-6">
+              {arrayCount < max && (
+                <Button
+                  type="button"
+                  onClick={() => addFieldToArray(fieldPath, min)}
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+                >
+                  Add Player
+                </Button>
+              )}
+              {arrayCount > min && (
+                <Button
+                  type="button"
+                  onClick={() => removeFieldToArray(fieldPath)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+                >
+                  Remove Player
+                </Button>
+              )}
+            </div>
           </div>
         );
       }
-  
+
       return null;
     });
   };
-  
+
 
 
 
@@ -414,15 +456,36 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> =
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6 mx-auto bg-white rounded-xl  p-8 mt-8">
         {memoizedFormFields}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
-          ) : (
-            "Submit"
-          )}
-        </Button>
+        <div className="flex justify-end gap-4 mt-6">
+        <Button
+            onClick={handleSaveDraftClick}
+
+            type="submit"
+            disabled={isSubmittingDraft}
+            className="bg-white text-black hover:bg-slate-100 border-2 border-solid border-black font-semibold py-2.5 px-6  duration-200"
+          >
+            {isSubmittingDraft ? (
+              <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+            ) : (
+              "Save Draft"
+            )}
+          </Button>
+          <Button
+            onClick={handleSubmitClick}
+
+            type="submit"
+            disabled={isSubmitting}
+            className=" font-semibold py-2.5 px-6  duration-200"
+          >
+            {isSubmitting ? (
+              <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+            ) : (
+              "Submit"
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -62,5 +62,5 @@ const generateDefaultForType = (schema: any): any => {
     return Array.from({ length: maxCount > 0 ? maxCount : 0 }, () => generateDefaultForType(elementSchema));
   }
 
-  return '';
+  return null;
 };

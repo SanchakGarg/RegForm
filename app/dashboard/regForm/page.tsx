@@ -24,7 +24,7 @@ export default function regForm() {
 
 
       </div>
-      <RenderForm schema={eventSchema.subEvents.Football.specificPages[0].fields} meta={eventSchema.subEvents.Football.specificPages[0].meta} />  {/* Calling PopoverForm */}
+      <RenderForm schema={eventSchema.subEvents.Football.specificPages[0].fields} draftSchema={eventSchema.subEvents.Football.specificPages[0].draft} meta={eventSchema.subEvents.Football.specificPages[0].meta} />  {/* Calling PopoverForm */}
 
     </div>
   );

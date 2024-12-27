@@ -142,13 +142,13 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   const handleSaveDraftClick = () => {
 
     setIsSaveDraft(true);  // Set to Save Draft mode
-    form.handleSubmit(onSubmit)(); // Submit draft form
+    // form.handleSubmit(onSubmit)(); // Submit draft form
   };
 
   // Button click handler to toggle form submission
   const handleSubmitClick = () => {
     setIsSaveDraft(false); // Set to regular Submit mode
-    form.handleSubmit(onSubmit)(); // Submit form
+    // form.handleSubmit(onSubmit)(); // Submit form
   };
 
   const FormInput = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => (

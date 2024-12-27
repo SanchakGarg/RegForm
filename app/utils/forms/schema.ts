@@ -168,7 +168,7 @@ export const eventSchema: EventSchema = {
                             .max(15, "A maximum of 15 players are allowed"),
                     }),
                     draft:z.object({
-                        
+                        coachFields,
                         playerFields: z.array(genericFieldsDraft)
                             .min(1, "Fill details of minimum two players")
                             .max(15, "A maximum of 7 players are allowed"),

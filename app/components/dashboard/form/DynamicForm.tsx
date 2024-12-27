@@ -152,16 +152,29 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   };
 
   const FormInput = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => (
-    <FormField control={form.control} name={name} render={({ field }) => (
-      <FormItem>
-        <FormLabel className="font-bold">{label}</FormLabel>
-        <FormControl>
-          <Input placeholder={placeholder} {...field} />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )} />
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="font-bold">{label}</FormLabel>
+          <FormControl>
+            <Input
+              placeholder={placeholder}
+              {...field}
+              onChange={(e) => {
+                // Normalize empty string to undefined
+                const value = e.target.value || undefined;
+                field.onChange(value);
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   ));
+  
 
   const FormDate = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => {
     const currentDate = new Date();
@@ -291,30 +304,38 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   const FormSelect = React.memo(({ name, options, label, placeholder }: FormSelectProps) => (
-    <FormField control={form.control} name={name} render={({ field }) => (
-      <FormItem>
-        <FormLabel className="font-bold">{label}</FormLabel>
-        <Select onValueChange={field.onChange} defaultValue={field.value}>
-          <FormControl>
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-          </FormControl>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <FormMessage />
-      </FormItem>
-    )} />
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="font-bold">{label}</FormLabel>
+          <Select
+            onValueChange={(value) => {
+              // If the selected value matches the placeholder, set to undefined
+              field.onChange(value === placeholder ? undefined : value);
+            }}
+            defaultValue={field.value}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   ));
-
-
-
+  
 
 
 

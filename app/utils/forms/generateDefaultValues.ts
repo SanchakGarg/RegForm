@@ -25,22 +25,22 @@ const generateDefaultForType = (schema: any): any => {
   
   if (schema instanceof ZodString || schema instanceof ZodEnum) {
     // Default value for string or enum is an empty string
-    return '';
+    return undefined;
   }
   
   if (schema instanceof ZodNumber) {
     // Default value for number is 0
-    return 0;
+    return undefined;
   }
   
   if (schema instanceof ZodBoolean) {
     // Default value for boolean is false
-    return false;
+    return undefined;
   }
   
   if (schema instanceof ZodDate) {
     // Default value for date is null
-    return null;
+    return undefined;
   }
   
   if (schema instanceof ZodArray) {
@@ -48,19 +48,19 @@ const generateDefaultForType = (schema: any): any => {
     const elementSchema = schema._def.type;
     
     // Handle array length constraints
-    const maxCount = schema._def.maxLength?.value || 0;
+    const minCount = schema._def.minLength?.value || 0;
 
     if (elementSchema instanceof ZodObject) {
       // If the array elements are objects, create an array of objects with default values
-      return Array.from({ length: maxCount > 0 ? maxCount : 1 }, (_, idx) => {
+      return Array.from({ length: minCount > 0 ? minCount : 1 }, (_, idx) => {
         const values = generateDefaultValues(elementSchema);
         return { ...values, fieldIndex: idx + 1 }; // Optionally include fieldIndex if needed
       });
     }
 
     // If array element is not an object, return an empty array
-    return Array.from({ length: maxCount > 0 ? maxCount : 0 }, () => generateDefaultForType(elementSchema));
+    return Array.from({ length: minCount > 0 ? minCount : 0 }, () => generateDefaultForType(elementSchema));
   }
 
-  return null;
+  return undefined;
 };

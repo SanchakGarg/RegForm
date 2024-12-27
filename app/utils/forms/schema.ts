@@ -28,7 +28,7 @@ export interface formMeta {
 }
 
 // ---------- Sports List ----------
-export const sports = {
+export const sports : Record<string,string> = {
     Badminton_Men: "Badminton (Men)",
     Badminton_Women: "Badminton (Women)",
     Basketball_Men: "Basketball (Men)",

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm"
-import { eventSchema } from "@/app/utils/forms/schema"
+import { eventSchema, sports } from "@/app/utils/forms/schema"
 import { post } from "@/app/utils/PostGetData"
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -22,6 +22,16 @@ const columns: ColumnDef<FormData>[] = [
   {
     accessorKey: "title",
     header: "Sports",
+    cell: ({ row }) => {
+      const sportsArray = sports; // Access the sports array
+      const title = row.original.title; // Use the title as a key or index
+      
+      // Find the matching sport based on the title
+      const matchingSport = sports[title];
+
+      // Return the value or a default if not found
+      return matchingSport;
+    },
   },
   {
     accessorKey: "updatedAt",
@@ -80,12 +90,12 @@ export default function RegForm() {
           return
         }
 
-        const response = await post<{ success: boolean; data?: FormData[] }>(
-          `/api/form/getAllForms`,
-          {
-            cookies: token,
-          }
-        )
+          const response = await post<{ success: boolean; data?: FormData[] }>(
+            `/api/form/getAllForms`,
+            {
+              cookies: token,
+            }
+          )
 
         if (response.data?.success && response.data?.data) {
           setData(response.data.data)

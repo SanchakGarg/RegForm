@@ -418,9 +418,13 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
           </div>
         );
       } else if (baseSchema instanceof ZodArray) {
+        const defaultArray = defaultvalues?.[fieldPath];
+        const defaultLength = Array.isArray(defaultArray) ? defaultArray.length : 0;
+
+
         const min = baseSchema._def.minLength?.value ?? 0;
-        const arrayCount = arrayFieldCounts[fieldPath] || min;
-        const max = baseSchema._def.maxLength?.value ?? Infinity;
+        const arrayCount = arrayFieldCounts[fieldPath] || Math.max(defaultLength, min);
+        const max = baseSchema._def.maxLength?.value ?? 1;
 
         const arrayFields = Array.from({ length: arrayCount }, (_, index) => {
           const fieldName = `${fieldPath}[${index}]`;

@@ -171,6 +171,7 @@ export default function RegForm() {
     <div className="h-screen w-full relative">
       <div className="w-full">
         <HeadingWithUnderline
+
           text="Registration Forms"
           desktopSize="md:text-6xl"
           mobileSize="text-3xl sm:text-2xl"
@@ -199,3 +200,4 @@ export default function RegForm() {
     </div>
   )
 }
+

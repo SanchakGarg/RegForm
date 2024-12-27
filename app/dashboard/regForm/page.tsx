@@ -45,7 +45,7 @@ const columns: ColumnDef<FormData>[] = [
     id: "actions",
     header: "Edit Form",
     cell: ({ row }) => {
-      const { status, _id } = row.original
+      const { status, _id,title } = row.original
       const router = useRouter()
       return (
         <div className="flex justify-center">

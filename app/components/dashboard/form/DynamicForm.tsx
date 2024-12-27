@@ -45,7 +45,7 @@ interface FormSelectProps {
   placeholder: string;
 }
 
-const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, draftSchema, meta }) => {
+const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta,defaultvalues:Record<string,any> }> = ({ schema, draftSchema, meta,defaultvalues }) => {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
@@ -55,7 +55,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   const formSchema = isSaveDraft ? draftSchema : schema;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    // defaultValues: generateDefaultValues(formSchema),
+    defaultValues: defaultvalues,
   });
   const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
@@ -114,6 +114,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
+    console.log(data);
      // Set loading state to true
     try {
       if (isSaveDraft) {

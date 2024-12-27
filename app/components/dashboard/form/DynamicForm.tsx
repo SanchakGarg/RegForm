@@ -1,10 +1,12 @@
 "use client"
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import styles from "@/app/styles/toast.module.css"
+
 import { useForm } from "react-hook-form";
 import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
 import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -44,6 +46,7 @@ interface FormSelectProps {
 }
 
 const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, draftSchema, meta }) => {
+  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
 
@@ -116,18 +119,18 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       if (isSaveDraft) {
         setIsSubmittingDraft(true);
         // Handle saving the draft data (e.g., save to localStorage or draft API)
-        console.log('Saving Draft:', data);
         toast({
           title: "Draft Saved",
           description: "Your form draft has been saved.",
+          className: styles["mobile-toast"]
         });
       } else {
         setIsSubmitting(true);
         // Handle form submission (e.g., submit to API)
-        console.log('Form Submitted:', data);
         toast({
           title: "Submission Successful",
           description: "Your form data has been submitted.",
+          className: styles["mobile-toast"]
         });
       }
     } catch (error) {

@@ -1,12 +1,17 @@
-"use client"
-
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/app/components/dashboard/Appsidebar"
 import { Toaster } from "@/components/ui/toaster"
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-        <main>{children}</main>
-        <Toaster />
-    </div>
+   <div className="w-full h-screen">
+    
+    <main className="flex items-center justify-center h-screen w-screen">
+        {children}
+      </main>
+      <Toaster />
+   </div>
+
+
   )
 }

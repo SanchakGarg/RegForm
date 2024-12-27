@@ -1,5 +1,6 @@
 "use client"
 // PopoverForm.tsx
+import styles from "@/app/styles/toast.module.css"
 import { eventSchema } from "@/app/utils/forms/schema";
 import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
 import { useRouter } from "next/navigation";
@@ -60,7 +61,7 @@ interface FormSelectProps {
   placeholder: string; // Array of options with value and label
 }
 const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, meta }) => {
-  const { toast } = useToast()
+    const { toast } = useToast()
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,7 +88,8 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
         toast({
           variant: "default",
           title: "Form created!",
-          description: `Form created for sports ${data.sports}`
+          description: `Form created for sports ${data.sports}`,
+          className: styles["mobile-toast"]
         })
         // Redirect to /?formId=formId
 
@@ -97,6 +99,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
           variant: "destructive",
           title: "Uh oh! Something went wrong.",
           description: `${response.error.message}`,
+          className: styles["mobile-toast"]
         })
         setIsSubmitting(false);
         // Show a success toast in case the formId is not returned
@@ -107,6 +110,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
         description: `${error}`,
+        className: styles["mobile-toast"]
       });
       setIsSubmitting(false);
     } finally {

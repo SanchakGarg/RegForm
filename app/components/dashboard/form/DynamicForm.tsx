@@ -65,42 +65,50 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   );
   const removeFieldToArray = useCallback(
     (fieldPath: string) => {
-      const currentCount = arrayFieldCounts[fieldPath] || 0; // Get the current count
+      const currentCount = arrayFieldCounts[fieldPath] || 0;
 
       if (currentCount > 0) {
-        const indexToRemove = currentCount - 1; // Identify the last index
-
-        // Unregister all fields for the last index
-        const unregisterPaths = Object.keys(form.getValues())
-          .filter((key) => key.startsWith(`${fieldPath}[${indexToRemove}]`));
-
-        unregisterPaths.forEach((path) => form.unregister(path)); // Unregister each field
-
-        // Update the array count
-        setArrayFieldCounts((prev) => ({
+        const indexToRemove = currentCount - 1;
+        
+        // Get the current form values
+        const currentValues = form.getValues();
+        
+        // Parse the field path to handle nested arrays correctly
+        const pathSegments = fieldPath.split('.');
+        const arrayFieldName = pathSegments[pathSegments.length - 1];
+        
+        // Get the parent object containing the array
+        let parentObject = currentValues;
+        for (let i = 0; i < pathSegments.length - 1; i++) {
+          parentObject = parentObject[pathSegments[i]];
+        }
+        
+        // If the array exists in the parent object
+        if (Array.isArray(parentObject[arrayFieldName])) {
+          // Remove the last element from the array
+          parentObject[arrayFieldName].splice(indexToRemove, 1);
+          
+          // Unregister all fields for the removed index
+          Object.keys(form.getValues())
+            .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
+            .forEach(key => {
+              form.unregister(key);
+            });
+          
+          // Update form values
+          form.reset(currentValues);
+        }
+        
+        // Update array count
+        setArrayFieldCounts(prev => ({
           ...prev,
-          [fieldPath]: currentCount - 1,
+          [fieldPath]: currentCount - 1
         }));
-
-        // Optional: Reset form state if necessary
-        const updatedValues = { ...form.getValues() };
-        unregisterPaths.forEach((path) => {
-          const keys = path.split('.'); // Split the nested path
-          let current = updatedValues;
-          keys.forEach((key, idx) => {
-            if (idx === keys.length - 1) {
-              delete current[key]; // Delete the last key
-            } else {
-              current = current[key];
-            }
-          });
-        });
-
-        form.reset(updatedValues); // Reset form state
       }
     },
     [arrayFieldCounts, form]
   );
+
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
      // Set loading state to true

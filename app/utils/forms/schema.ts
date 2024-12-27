@@ -5,7 +5,7 @@ interface Page {
     pageName: string;
     fields: z.ZodObject<any>;
     meta: formMeta;
-    draft:z.ZodObject<any>;
+    draft: z.ZodObject<any>;
 }
 
 interface SubEvent {
@@ -28,28 +28,28 @@ export interface formMeta {
 }
 
 // ---------- Sports List ----------
-export const sports = [
-    "Badminton (Men)",
-    "Badminton (Women)",
-    "Basketball (Men)",
-    "Basketball (Women)",
-    "Chess (Mixed)",
-    "Cricket (Men)",
-    "Football (Men)",
-    "Futsal (Women)",
-    "Tennis (Mixed)",
-    "Volleyball (Men)",
-    "Volleyball (Women)",
-    "Table Tennis (Men)",
-    "Table Tennis (Women)",
-    "Squash (Men)",
-    "Squash (Women)",
-    "Swimming (Men)",
-    "Swimming (Women)",
-    "8 Ball Pool (Men)",
-    "Snooker (Men)",
-    "Shooting",
-] as const;
+export const sports = {
+    Badminton_Men: "Badminton (Men)",
+    Badminton_Women: "Badminton (Women)",
+    Basketball_Men: "Basketball (Men)",
+    Basketball_Women: "Basketball (Women)",
+    Chess_Mixed: "Chess (Mixed)",
+    Cricket_Men: "Cricket (Men)",
+    Football_Men: "Football (Men)",
+    Futsal_Women: "Futsal (Women)",
+    Tennis_Mixed: "Tennis (Mixed)",
+    Volleyball_Men: "Volleyball (Men)",
+    Volleyball_Women: "Volleyball (Women)",
+    Table_Tennis_Men: "Table Tennis (Men)",
+    Table_Tennis_Women: "Table Tennis (Women)",
+    Squash_Men: "Squash (Men)",
+    Squash_Women: "Squash (Women)",
+    Swimming_Men: "Swimming (Men)",
+    Swimming_Women: "Swimming (Women)",
+    Ball_Pool_Men: "8 Ball Pool (Men)",
+    Snooker_Men: "Snooker (Men)",
+    Shooting: "Shooting"
+} as const;
 
 // ---------- Generic Fields ----------
 export const genericFields = z.object({
@@ -89,7 +89,7 @@ export const genericFieldsDraft = z.object({
 
 export const genericMeta: formMeta = {
     title: { label: "Player Details" },
-    subtitle:{label:"Player-"},
+    subtitle: { label: "Player-" },
     name: { label: "Name", placeholder: "Name" },
     date: { label: "Date Of Birth", placeholder: "Pick a date" },
     email: { label: "Email", placeholder: "Email" },
@@ -104,7 +104,7 @@ export const coachFields = z.object({
         (phone) => /^[0-9]{10,15}$/.test(phone),
         { message: "Phone number must be atleast 10 digits" }
     ).optional(),
-    gender: z.enum(["Select Gender","Male", "Female", "Other"], { message: "Gender is required" }).optional(),
+    gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),
 });
 
 export const coachFieldsMeta: formMeta = {
@@ -115,9 +115,34 @@ export const coachFieldsMeta: formMeta = {
     phone: { label: "Phone Number", placeholder: "Phone Number" }
 };
 
-// ---------- Sport Field ----------
+// ---------- Sport Field ---------
+export const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined => {
+    return Object.keys(obj).find((key) => obj[key] === value);
+}; // Output: "Basketball_Men"
+
 export const sportField = z.object({
-    sports: z.enum(sports, { message: "Select a sport" }),
+    sports: z.enum([
+        "Badminton (Men)",
+        "Badminton (Women)",
+        "Basketball (Men)",
+        "Basketball (Women)",
+        "Chess (Mixed)",
+        "Cricket (Men)",
+        "Football (Men)",
+        "Futsal (Women)",
+        "Tennis (Mixed)",
+        "Volleyball (Men)",
+        "Volleyball (Women)",
+        "Table Tennis (Men)",
+        "Table Tennis (Women)",
+        "Squash (Men)",
+        "Squash (Women)",
+        "Swimming (Men)",
+        "Swimming (Women)",
+        "8 Ball Pool (Men)",
+        "Snooker (Men)",
+        "Shooting",
+    ], { message: "Select a sport" }),
 });
 
 export const sportFieldMeta: formMeta = {
@@ -131,7 +156,7 @@ export const eventSchema: EventSchema = {
             pageName: "Sports Selection",
             fields: sportField,
             meta: sportFieldMeta,
-            draft:sportField
+            draft: sportField
         },
     ],
     subEvents: {
@@ -146,7 +171,7 @@ export const eventSchema: EventSchema = {
                             .min(2, "Fill details of minimum two players")
                             .max(7, "A maximum of 7 players are allowed"),
                     }),
-                    draft:z.object({
+                    draft: z.object({
                         coachFields,
                         playerFields: z.array(genericFieldsDraft)
                             .min(2, "Fill details of minimum two players")
@@ -156,7 +181,7 @@ export const eventSchema: EventSchema = {
                 },
             ],
         },
-        Football: {
+        Badminton_Men: {
             eventName: "Football",
             specificPages: [
                 {
@@ -167,7 +192,7 @@ export const eventSchema: EventSchema = {
                             .min(1, "Fill details of minimum eleven players")
                             .max(15, "A maximum of 15 players are allowed"),
                     }),
-                    draft:z.object({
+                    draft: z.object({
                         coachFields,
                         playerFields: z.array(genericFieldsDraft)
                             .min(1, "Fill details of minimum two players")

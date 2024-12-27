@@ -1,30 +1,20 @@
 import { encrypt } from "@/app/utils/encryption";
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
-import { eventSchema } from "@/app/utils/forms/schema";
-import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { fetchUserData } from "@/app/utils/GetUpdateUser";
 
 interface FormObj {
   ownerId: Object;
   fields?: Object;
   createdAt: Date;
-  status:string;
+  status: string;
   updatedAt: Date;
-  title:string
-}
-
-interface FetchUserResponse {
-  data: { _id: Object };
-}
-
-interface FetchUserError {
-  error: string;
+  title: string;
 }
 
 export async function POST(req: NextRequest) {
-
   try {
     // Ensure the request has a JSON body
     const data = await req.json();
@@ -47,6 +37,7 @@ export async function POST(req: NextRequest) {
     const { db } = await connectToDatabase();
     const formCollection: Collection = db.collection("form");
 
+    // Fetch user data based on the email
     const userResponse = await fetchUserData("email", email, ["_id"]);
 
     if (!userResponse.success || !userResponse.data?._id) {
@@ -55,14 +46,24 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
-    
-    const ownerId = userResponse.data._id; // Safely access the _id property
-    const selectedSports=data.data.sports;
+
+    const ownerId = userResponse.data._id;
+    const selectedSports = data.data.sports;
+
+    // Check if a form with the same title and ownerId already exists
+    const existingForm = await formCollection.findOne({ title: selectedSports, ownerId });
+
+    if (existingForm) {
+      return NextResponse.json(
+        { success: false, message: "A form for this sport already exists" },
+        { status: 400 }
+      );
+    }
+
     const newFormData: FormObj = {
       ownerId,
-      title:selectedSports,
-      status:"draft",
-      // fields: generateDefaultValues(eventSchema.subEvents.[].sports)
+      title: selectedSports,
+      status: "draft",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -70,13 +71,16 @@ export async function POST(req: NextRequest) {
     await formCollection.insertOne(newFormData);
 
     return NextResponse.json(
-      { success: true, message: "Data processed successfully",formId:encrypt(userResponse.data) },
+      {
+        success: true,
+        message: "Data processed successfully",
+        formId: encrypt(userResponse.data),
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error in API handler:", error);
 
-    // Handle JSON parsing errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(
         { success: false, message: "Invalid JSON format" },
@@ -84,7 +88,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Handle other errors
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 }

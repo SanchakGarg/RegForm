@@ -12,7 +12,7 @@ console.log(generateDefaultValues(eventSchema.subEvents.Basketball.specificPages
                  desktopSize="md:text-6xl"
                  mobileSize="text-3xl sm:text-2xl"
                />
-                     <RenderForm schema={eventSchema.subEvents.Football.specificPages[0].fields} draftSchema={eventSchema.subEvents.Football.specificPages[0].draft} meta={eventSchema.subEvents.Football.specificPages[0].meta} />  {/* Calling PopoverForm */}
+                     <RenderForm schema={eventSchema.subEvents.Badminton_Men.specificPages[0].fields} draftSchema={eventSchema.subEvents.Badminton_Men.specificPages[0].draft} meta={eventSchema.subEvents.Badminton_Men.specificPages[0].meta} />  {/* Calling PopoverForm */}
 
         </div>
   );

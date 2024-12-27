@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects } from "zod"
 
-import { toast } from "@/hooks/use-toast"
+import { toast, useToast } from "@/hooks/use-toast"
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import {
@@ -52,13 +52,15 @@ import { Input } from "@/components/ui/input"
 import { post } from "@/app/utils/PostGetData";
 import { cookies } from "next/headers";
 import { formMeta } from "@/app/utils/forms/schema";
+import { encrypt } from "@/app/utils/encryption";
 interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[];
-  label:string;
-  placeholder:string; // Array of options with value and label
+  label: string;
+  placeholder: string; // Array of options with value and label
 }
-const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>,meta:formMeta }> = ({ schema,meta }) => {
+const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMeta }> = ({ schema, meta }) => {
+  const { toast } = useToast()
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,16 +84,30 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>,meta:formMeta
       });
 
       if (response.data?.success && response.data?.formId) {
+        toast({
+          variant: "default",
+          title: "Form created!",
+          description: `Form created for sports ${data.sports}`
+        })
         // Redirect to /?formId=formId
-        
-        router.push(`/dashboard/regForm/form?formId=${response.data?.formId}`);
+
+        router.push(`/dashboard/regForm/form?i=${encrypt({id:response.data?.formId,title:data.Sports})}`);
       } else {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `${response.error.message}`,
+        })
         setIsSubmitting(false);
         // Show a success toast in case the formId is not returned
 
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: `${error}`,
+      });
       setIsSubmitting(false);
     } finally {
       //  // Reset loading state
@@ -107,131 +123,131 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>,meta:formMeta
 
 
 
-  const FormInput = ({ name,label,placeholder }: { name: string;label:string;placeholder:string; }) => (
-      <FormField
-        control={form.control}
-        name={name}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="font-bold">{label}</FormLabel>
-            <FormControl>
-              <Input placeholder={placeholder} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    )  // Render form fields based on the provided schema
-  
-  
-    const FormDate = ({name,label,placeholder}:{name:string;label:string;placeholder:string;}) => (
-      <FormField
-            control={form.control}
-            name={name}
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="font-bold">{label}</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>{placeholder}</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-    )
-  
-    const FormSelect = ({ name, options,label,placeholder }: FormSelectProps,) => (
-      <FormField
-        control={form.control}
-        name={name}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="font-bold">{label}</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+  const FormInput = ({ name, label, placeholder }: { name: string; label: string; placeholder: string; }) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="font-bold">{label}</FormLabel>
+          <FormControl>
+            <Input placeholder={placeholder} {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )  // Render form fields based on the provided schema
+
+
+  const FormDate = ({ name, label, placeholder }: { name: string; label: string; placeholder: string; }) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <FormLabel className="font-bold">{label}</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder={placeholder} />
-                </SelectTrigger>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] pl-3 text-left font-normal",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value ? (
+                    format(field.value, "PPP")
+                  ) : (
+                    <span>{placeholder}</span>
+                  )}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
               </FormControl>
-              <SelectContent>
-                {options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    );
-  
-    const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
-      return Object.entries(schema.shape).map(([key, value]) => {
-        const fieldPath = path ? `${path}.${key}` : key;
-        if (value instanceof ZodEffects) {
-          const baseSchema = value._def.schema;
-    
-          // Process based on the base type
-          if (baseSchema instanceof ZodString) {
-            return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
-          } else if (baseSchema instanceof ZodDate ) {
-            return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
-          }
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+
+  const FormSelect = ({ name, options, label, placeholder }: FormSelectProps,) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="font-bold">{label}</FormLabel>
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
+  const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {
+    return Object.entries(schema.shape).map(([key, value]) => {
+      const fieldPath = path ? `${path}.${key}` : key;
+      if (value instanceof ZodEffects) {
+        const baseSchema = value._def.schema;
+
+        // Process based on the base type
+        if (baseSchema instanceof ZodString) {
+          return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string} />;
+        } else if (baseSchema instanceof ZodDate) {
+          return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string} />;
         }
-        else if (value instanceof ZodString) {
-          return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
-        } else if (value instanceof ZodDate) {
-          return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
-        } else if (value instanceof ZodEnum) {
-          const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
-            value: option,
-            label: option,
-          }));
-          return <FormSelect key={fieldPath} name={fieldPath} options={options} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string}/>;
-        } else if (value instanceof ZodObject) {
-          // For nested Zod objects, recursively call renderFormFields
-          return (
-            <div key={fieldPath} className="nested-form">
-              <h3>{key}</h3>
-              {renderFormFields(value, fieldPath)} {/* Pass the current path */}
-            </div>
-          );
-        }
-        // Handle other types if needed
-        return null;
-      });
-    };
-    
+      }
+      else if (value instanceof ZodString) {
+        return <FormInput key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string} />;
+      } else if (value instanceof ZodDate) {
+        return <FormDate key={fieldPath} name={fieldPath} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string} />;
+      } else if (value instanceof ZodEnum) {
+        const options = (value as ZodEnum<[string, ...string[]]>)._def.values.map((option) => ({
+          value: option,
+          label: option,
+        }));
+        return <FormSelect key={fieldPath} name={fieldPath} options={options} label={meta[fieldPath].label as string} placeholder={meta[fieldPath].placeholder as string} />;
+      } else if (value instanceof ZodObject) {
+        // For nested Zod objects, recursively call renderFormFields
+        return (
+          <div key={fieldPath} className="nested-form">
+            <h3>{key}</h3>
+            {renderFormFields(value, fieldPath)} {/* Pass the current path */}
+          </div>
+        );
+      }
+      // Handle other types if needed
+      return null;
+    });
+  };
+
 
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   return (

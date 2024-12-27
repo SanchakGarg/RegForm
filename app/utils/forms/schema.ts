@@ -418,7 +418,7 @@ export const eventSchema: EventSchema = {
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),category1: z.enum(ShootingCategories, { message: "Category 1 is required" }).optional()}))
                             .min(1, `Fill details of minimum ${1} players`)
                             .max(10, `A maximum of ${10} players are allowed`),
                     }),

@@ -14,6 +14,15 @@ const getAuthToken = (): string | null => {
   const authToken = cookies.find((cookie) => cookie.startsWith("authToken="));
   return authToken ? authToken.split("=")[1] : null;
 };
+function typecastDatesInPlayerFields(playerFields: Record<string, any>[]) {
+  playerFields.forEach((obj) => {
+    for (const key in obj) {
+      if (typeof obj[key] === "string" && !isNaN(Date.parse(obj[key]))) {
+        obj[key] = new Date(obj[key]); // Convert string to Date
+      }
+    }
+  });
+}
 
 export default function Form() {
   const [loading, setLoading] = useState(true);
@@ -34,12 +43,13 @@ export default function Form() {
           return;
         }
 
-        const response = await post<{success: boolean; data?: Record<string,any>}>(`/api/form/getForm`, {
+        const response = await post<{ success: boolean; data?: Record<string, any> }>(`/api/form/getForm`, {
           formId,
           cookies: token,
         });
 
         if (response.data?.success && response.data?.data) {
+          typecastDatesInPlayerFields(response.data.data.fields.playerFields)
           setData(response.data.data.fields);
           setTitle(response.data.data.title);
         } else {

@@ -3,6 +3,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "@/app/styles/toast.module.css"
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useForm } from "react-hook-form";
 import { z, ZodObject, ZodRawShape, ZodString, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
@@ -248,7 +249,6 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       (_, i) => minDate.getFullYear() + i
     );
 
-    // Month options
     const monthOptions = Array.from({ length: 12 }, (_, i) => ({
       value: i,
       label: new Date(0, i).toLocaleString("default", { month: "long" }),
@@ -274,88 +274,90 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       <FormField
         control={form.control}
         name={name}
-        render={({ field }) => (
-          <FormItem className="flex flex-col pt-2">
-            <FormLabel className="font-bold">{label}</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant={"outline"}
-                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                  >
-                    {selectedDate ? format(selectedDate, "PPP") : <span>{placeholder}</span>}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-4" align="start">
-                <div className="flex gap-2 mb-4">
-                  {/* Year Selector */}
-                  <Select
-                    onValueChange={(value) => {
-                      const year = parseInt(value);
-                      handleYearChange(year);
+        render={({ field }) => {
+          // Ensure the initial value is a Date object
+          const value = field.value ? new Date(field.value) : undefined;
+          
+          return (
+            <FormItem className="flex flex-col pt-2">
+              <FormLabel className="font-bold">{label}</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn("pl-3 text-left font-normal", !value && "text-muted-foreground")}
+                    >
+                      {value ? format(value, "PPP") : <span>{placeholder}</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-4" align="start">
+                  <div className="flex gap-2 mb-4">
+                    <Select
+                      onValueChange={(value) => {
+                        const year = parseInt(value);
+                        handleYearChange(year);
+                      }}
+                      value={selectedYear ? String(selectedYear) : undefined}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map((year) => (
+                          <SelectItem key={year} value={String(year)}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      onValueChange={(value) => {
+                        const month = parseInt(value);
+                        handleMonthChange(month);
+                      }}
+                      value={selectedMonth !== null ? String(selectedMonth) : undefined}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((month) => (
+                          <SelectItem key={month.value} value={String(month.value)}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={value}
+                    onSelect={(date) => {
+                      const dateValue = date ? new Date(date) : undefined;
+                      setSelectedDate(dateValue);
+                      field.onChange(dateValue);
                     }}
-                    value={selectedYear ? String(selectedYear) : undefined}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((year) => (
-                        <SelectItem key={year} value={String(year)}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {/* Month Selector */}
-                  <Select
-                    onValueChange={(value) => {
-                      const month = parseInt(value);
-                      handleMonthChange(month);
+                    disabled={(date) => date < minDate || date > maxDate}
+                    month={calendarMonth}
+                    onMonthChange={(newMonth) => {
+                      setCalendarMonth(newMonth);
+                      setSelectedYear(newMonth.getFullYear());
+                      setSelectedMonth(newMonth.getMonth());
                     }}
-                    value={selectedMonth !== null ? String(selectedMonth) : undefined}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((month) => (
-                        <SelectItem key={month.value} value={String(month.value)}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Calendar Component */}
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date || undefined);
-                    field.onChange(date); // Sync with form state
-                  }}
-                  disabled={(date) => date < minDate || date > maxDate}
-                  month={calendarMonth}
-                  onMonthChange={(newMonth) => {
-                    setCalendarMonth(newMonth);
-                    setSelectedYear(newMonth.getFullYear());
-                    setSelectedMonth(newMonth.getMonth());
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        )}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
     );
   });
-
 
 
   const FormSelect = React.memo(({ name, options, label, placeholder }: FormSelectProps) => (

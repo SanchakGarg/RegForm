@@ -14,6 +14,18 @@ interface FormObj {
   updatedAt: Date;
   title: string;
 }
+function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
+  playerFields.forEach((obj) => {
+    for (const key in obj) {
+      if (typeof obj[key] === "string" && !isNaN(Date.parse(obj[key]))) {
+        obj[key] = new Date(obj[key]); // Convert string to Date
+      }
+    }
+  });
+}
+
+// Example usage
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +46,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // console.log(fields);  
+    // console.log(fields);
+    typecastDatesInPlayerFields(fields.playerFields);
     const email = getEmailFromToken(req);
     if (!email) {
       return NextResponse.json(

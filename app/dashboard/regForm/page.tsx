@@ -1,12 +1,159 @@
 "use client"
-import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
-import  RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm";  // Import the PopoverForm component
-import RenderForm from "@/app/components/dashboard/form/DynamicForm";
-import { coachFields, eventSchema, genericFields, genericMeta, sportField } from "@/app/utils/forms/schema";
-export default function regForm() {
+import { useEffect, useState } from "react"
+import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
+import RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm"
+import { eventSchema } from "@/app/utils/forms/schema"
+import { post } from "@/app/utils/PostGetData"
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { encrypt } from "@/app/utils/encryption"
+import { title } from "process"
+
+export type FormData = {
+  _id: string;
+  title: string;
+  updatedAt: string;
+  status: string;
+};
+
+const columns: ColumnDef<FormData>[] = [
+  {
+    accessorKey: "title",
+    header: "Sports",
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Time",
+    cell: (info) => {
+      const date = new Date(info.getValue() as string)
+      return date.toLocaleString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      })
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+  },
+  {
+    id: "actions",
+    header: "Edit Form",
+    cell: ({ row }) => {
+      const { status, _id } = row.original
+      const router = useRouter()
+      return (
+        <div className="flex justify-center">
+          {status === "draft" ? (
+            <Button onClick={() => router.push(`/dashboard/regForm/form?i=${encrypt({id:_id,title:title})}`)}>Edit</Button>
+          ) : (
+            <Button disabled>Edit</Button>
+          )}
+        </div>
+      )
+    },
+  },
+];
+
+const getAuthToken = (): string | null => {
+  const cookies = document.cookie.split("; ")
+  const authToken = cookies.find((cookie) => cookie.startsWith("authToken="))
+  return authToken ? authToken.split("=")[1] : null
+}
+
+export default function RegForm() {
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<FormData[]>([])
+
+  useEffect(() => {
+    const getForms = async () => {
+      try {
+        const token = getAuthToken()
+        if (!token) {
+          console.error("Auth token not found")
+          setLoading(false)
+          return
+        }
+
+        const response = await post<{ success: boolean; data?: FormData[] }>(
+          `/api/form/getAllForms`,
+          {
+            cookies: token,
+          }
+        )
+
+        if (response.data?.success && response.data?.data) {
+          setData(response.data.data)
+        } else {
+          console.error("Failed to retrieve form data or no data returned.")
+        }
+      } catch (error) {
+        console.error("Error fetching form data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    getForms()
+  }, [])
+
+  const DataTable = ({ columns, data }: { columns: ColumnDef<FormData>[]; data: FormData[] }) => {
+    const table = useReactTable({
+      data,
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+    })
+
+    return (
+      <div className="overflow-x-auto rounded-lg shadow-lg">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="bg-black hover:bg-black-200 group">
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className="text-white text-center group-hover:bg-black-200 transition-colors duration-200"
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} className="text-center">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+    )
+  }
+
   return (
     <div className="h-screen w-full relative">
-      {/* Heading */}
       <div className="w-full">
         <HeadingWithUnderline
           text="Registration Forms"
@@ -15,17 +162,25 @@ export default function regForm() {
         />
       </div>
 
-
-      {/* Button and Alert Dialog */}
       <div className="flex justify-end">
         <div className="pr-5">
-          <RenderPopoverForm schema={eventSchema.commonPages[0].fields} meta={eventSchema.commonPages[0].meta} />  {/* Calling PopoverForm */}
+          <RenderPopoverForm schema={eventSchema.commonPages[0].fields} meta={eventSchema.commonPages[0].meta} />
         </div>
-
-
       </div>
-      <RenderForm schema={eventSchema.subEvents.Football.specificPages[0].fields} draftSchema={eventSchema.subEvents.Football.specificPages[0].draft} meta={eventSchema.subEvents.Football.specificPages[0].meta} />  {/* Calling PopoverForm */}
 
+      <div className="w-full mt-6 pb-8 pr-5">
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="h-64 flex items-center justify-center text-center text-gray-500">
+            No forms filled.
+          </div>
+        ) : (
+          <DataTable columns={columns} data={data} />
+        )}
+      </div>
     </div>
-  );
+  )
 }

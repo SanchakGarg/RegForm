@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { formMeta } from "@/app/utils/forms/schema";
 import { Label } from "@radix-ui/react-label";
 import { title } from "process";
+import { post } from "@/app/utils/PostGetData";
 
 interface FormSelectProps {
   name: string;
@@ -44,8 +45,12 @@ interface FormSelectProps {
   label: string;
   placeholder: string;
 }
-
-const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta,defaultvalues:Record<string,any> }> = ({ schema, draftSchema, meta,defaultvalues }) => {
+const getAuthToken = (): string | null => {
+  const cookies = document.cookie.split("; ");
+  const authToken = cookies.find(cookie => cookie.startsWith("authToken="));
+  return authToken ? authToken.split("=")[1] : null;
+};
+const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta,defaultvalues:Record<string,any>,id:string }> = ({ schema, draftSchema, meta,defaultvalues,id }) => {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
@@ -118,7 +123,14 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
      // Set loading state to true
     try {
       if (isSaveDraft) {
+        
         setIsSubmittingDraft(true);
+        // const response = await post<{ success: boolean; }>(`/api/form/saveFrom`, {
+        //   fields:data,
+        //   isDraft:true,
+        //   formId:id,
+        //   cookies: getAuthToken,
+        // });
         // Handle saving the draft data (e.g., save to localStorage or draft API)
         toast({
           title: "Draft Saved",
@@ -127,6 +139,12 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
         });
       } else {
         setIsSubmitting(true);
+        const response = await post<{ success: boolean; }>(`/api/form/saveFrom`, {
+          fields:data,
+          isDraft:false,
+          formId:id,
+          cookies: getAuthToken,
+        });
         // Handle form submission (e.g., submit to API)
         toast({
           title: "Submission Successful",
@@ -431,7 +449,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
           return (
             <div key={fieldPath + fieldName} className="pt-5">
               <h1 className="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">
-                Player-{index + 1}
+                Player {index + 1}
               </h1>
               {renderFormFields(baseSchema._def.type, fieldName, fieldPath)}
             </div>

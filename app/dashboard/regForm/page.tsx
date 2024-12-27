@@ -172,8 +172,8 @@ export default function RegForm() {
         />
       </div>
 
-      <div className="flex justify-end">
-        <div className="pr-5">
+      <div className="flex justify-start">
+        <div className="">
           <RenderPopoverForm schema={eventSchema.commonPages[0].fields} meta={eventSchema.commonPages[0].meta} />
         </div>
       </div>

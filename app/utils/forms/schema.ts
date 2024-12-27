@@ -89,7 +89,7 @@ export const playerFieldsDraft = z.object({
 
 export const playerMeta: formMeta = {
     title: { label: "Player Details" },
-    subtitle: { label: "Player-" },
+    subtitle: { label: "Player " },
     name: { label: "Name", placeholder: "Name" },
     date: { label: "Date Of Birth", placeholder: "Pick a date" },
     email: { label: "Email", placeholder: "Email" },
@@ -112,7 +112,7 @@ export const coachFields = z.object({
 });
 
 export const coachFieldsMeta: formMeta = {
-    title: { label: "Coach Details" },
+    title: { label: "Coach / Staff Member" },
     name: { label: "Name", placeholder: "Name" },
     gender: { label: "Gender", placeholder: "Select Gender" },
     email: { label: "Email", placeholder: "Email" },

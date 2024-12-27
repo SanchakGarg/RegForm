@@ -4,7 +4,6 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
-import { getKeyByValue, sports } from "@/app/utils/forms/schema";
 
 interface FormObj {
   ownerId: Object;
@@ -50,12 +49,10 @@ export async function POST(req: NextRequest) {
 
     const ownerId = userResponse.data._id;
     const selectedSports = data.data.sports;
-
     // Check if a form with the same title and ownerId already exists
     const existingForm = await formCollection.findOne({ title: selectedSports, ownerId });
 
     if (existingForm) {
-      
       return NextResponse.json(
         { success: false, message: "A form for this sport already exists" },
         { status: 400 }
@@ -64,19 +61,19 @@ export async function POST(req: NextRequest) {
 
     const newFormData: FormObj = {
       ownerId,
-      title: getKeyByValue(sports,selectedSports) || "",
+      title: selectedSports,
       status: "draft",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    await formCollection.insertOne(newFormData);
-
+    const result = await formCollection.insertOne(newFormData);
+    const insertedId = result.insertedId;
     return NextResponse.json(
       {
         success: true,
         message: "Data processed successfully",
-        formId: encrypt(userResponse.data),
+        formId: insertedId.toString,
       },
       { status: 200 }
     );

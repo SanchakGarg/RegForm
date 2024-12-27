@@ -74,6 +74,7 @@ const [title,setTitle] = useState<string>("");
             draftSchema={eventSchema.subEvents[title].specificPages[0].draft}
             meta={eventSchema.subEvents[title].specificPages[0].meta}
             defaultvalues={data}
+            id={id}
           /> 
       </div>)}
     </div>

@@ -1,6 +1,6 @@
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Collection } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest) {
     const formCollection: Collection = db.collection("form");
 
     // Fetch form data based on formId
-    const form = await formCollection.findOne({ _id: formId });
+    const form = await formCollection.findOne({ _id: new ObjectId(formId) });
     if (!form) {
       return NextResponse.json(
         { success: false, message: "Form not found" },

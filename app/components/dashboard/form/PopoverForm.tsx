@@ -54,6 +54,7 @@ import { post } from "@/app/utils/PostGetData";
 import { cookies } from "next/headers";
 import { formMeta } from "@/app/utils/forms/schema";
 import { encrypt } from "@/app/utils/encryption";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[];
@@ -190,29 +191,33 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
 
   const FormSelect = ({ name, options, label, placeholder }: FormSelectProps,) => (
     <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel className="font-bold">{label}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
+          control={form.control}
+          name={name}
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="font-bold text-black">{label}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  {options.map((option) => (
+                <FormItem className="flex items-center space-x-3 space-y-0" key={option.value}>
+                <FormControl>
+                  <RadioGroupItem value={option.value} />
+                </FormControl>
+                <FormLabel className="font-normal">
+                  {option.label}  
+                </FormLabel>
+              </FormItem>
               ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
   );
 
   const renderFormFields = (schema: ZodObject<ZodRawShape>, path = "") => {

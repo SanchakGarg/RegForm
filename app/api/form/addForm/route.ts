@@ -1,9 +1,10 @@
-import { encrypt } from "@/app/utils/encryption";
+import { decrypt, encrypt } from "@/app/utils/encryption";
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
+import { getKeyByValue, sports } from "@/app/utils/forms/schema";
 
 interface FormObj {
   ownerId: Object;
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
     const ownerId = userResponse.data._id;
     const selectedSports = data.data.sports;
     // Check if a form with the same title and ownerId already exists
-    const existingForm = await formCollection.findOne({ title: selectedSports, ownerId });
+    const existingForm = await formCollection.findOne({ title: getKeyByValue(sports,selectedSports) as string, ownerId });
 
     if (existingForm) {
       return NextResponse.json(
@@ -61,19 +62,18 @@ export async function POST(req: NextRequest) {
 
     const newFormData: FormObj = {
       ownerId,
-      title: selectedSports,
+      title: getKeyByValue(sports,selectedSports) as string,
       status: "draft",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
+    console.log(decrypt("c002eabb2d94bb37b059ae21f85101c6:e90c487522d46b84e5df64342f4f5e42a339ffa8703ff52622ae1630e7eaba29b8395aeff5dccd688ac41c3bddaab281"));
     const result = await formCollection.insertOne(newFormData);
-    const insertedId = result.insertedId;
-    return NextResponse.json(
+        return NextResponse.json(
       {
         success: true,
         message: "Data processed successfully",
-        formId: insertedId.toString,
+        formId: result.insertedId,
       },
       { status: 200 }
     );

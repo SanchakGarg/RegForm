@@ -55,6 +55,7 @@ import { cookies } from "next/headers";
 import { formMeta } from "@/app/utils/forms/schema";
 import { encrypt } from "@/app/utils/encryption";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ObjectId } from "mongodb";
 interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[];
@@ -80,7 +81,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
     setIsSubmitting(true);
 
     try {
-      const response = await post<{ success: boolean; formId?: string }>(`/api/form/addForm`, {
+      const response = await post<{ success: boolean; formId?: ObjectId }>(`/api/form/addForm`, {
         data,
         cookies: getAuthToken,
       });

@@ -1,4 +1,6 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useEffect, useState } from "react"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm"
@@ -9,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { encrypt } from "@/app/utils/encryption"
-import { title } from "process"
 
 export type FormData = {
   _id: string;
@@ -18,33 +19,49 @@ export type FormData = {
   status: string;
 };
 
+const ActionCell: React.FC<{ row: any }> = ({ row }) => {
+  const router = useRouter();
+  const { status, _id, title } = row.original;
+
+  return (
+    <div className="flex justify-center">
+      {status === "draft" ? (
+        <Button
+          onClick={() =>
+            router.push(`/dashboard/regForm/form?i=${encrypt({ id: _id, title: title })}`)
+          }
+        >
+          Edit
+        </Button>
+      ) : (
+        <Button disabled>Edit</Button>
+      )}
+    </div>
+  );
+};
+
 const columns: ColumnDef<FormData>[] = [
   {
     accessorKey: "title",
     header: "Sports",
     cell: ({ row }) => {
-      const sportsArray = sports; // Access the sports array
-      const title = row.original.title; // Use the title as a key or index
-      
-      // Find the matching sport based on the title
+      const title = row.original.title;
       const matchingSport = sports[title];
-
-      // Return the value or a default if not found
-      return matchingSport;
+      return matchingSport || "Unknown";
     },
   },
   {
     accessorKey: "updatedAt",
     header: "Time",
     cell: (info) => {
-      const date = new Date(info.getValue() as string)
+      const date = new Date(info.getValue() as string);
       return date.toLocaleString("en-GB", {
         day: "numeric",
         month: "long",
         year: "numeric",
         hour: "numeric",
         minute: "numeric",
-      })
+      });
     },
   },
   {
@@ -54,19 +71,7 @@ const columns: ColumnDef<FormData>[] = [
   {
     id: "actions",
     header: "Edit Form",
-    cell: ({ row }) => {
-      const { status, _id,title } = row.original
-      const router = useRouter()
-      return (
-        <div className="flex justify-center">
-          {status === "draft" ? (
-            <Button onClick={() => router.push(`/dashboard/regForm/form?i=${encrypt({id:_id,title:title})}`)}>Edit</Button>
-          ) : (
-            <Button disabled>Edit</Button>
-          )}
-        </div>
-      )
-    },
+    cell: ({ row }) => <ActionCell row={row} />, // Use the new functional component
   },
 ];
 

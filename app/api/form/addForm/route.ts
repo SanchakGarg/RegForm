@@ -1,4 +1,5 @@
-import { decrypt, encrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   try {
     // Ensure the request has a JSON body
     const data = await req.json();
-    console.log("Received data:", data);
+    // console.log("Received data:", data);
     if (!data || Object.keys(data).length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid or empty data" },
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    console.log(decrypt("c002eabb2d94bb37b059ae21f85101c6:e90c487522d46b84e5df64342f4f5e42a339ffa8703ff52622ae1630e7eaba29b8395aeff5dccd688ac41c3bddaab281"));
+    // console.log(decrypt("c002eabb2d94bb37b059ae21f85101c6:e90c487522d46b84e5df64342f4f5e42a339ffa8703ff52622ae1630e7eaba29b8395aeff5dccd688ac41c3bddaab281"));
     const result = await formCollection.insertOne(newFormData);
         return NextResponse.json(
       {

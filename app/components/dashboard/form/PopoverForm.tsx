@@ -1,33 +1,20 @@
 "use client"
 // PopoverForm.tsx
 import styles from "@/app/styles/toast.module.css"
-import { eventSchema } from "@/app/utils/forms/schema";
 import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
 import { useRouter } from "next/navigation";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
 import { Plus } from "lucide-react";
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects } from "zod"
+import { z, ZodObject, ZodRawShape, ZodString, ZodDate, ZodEnum, ZodEffects } from "zod"
 
-import { toast, useToast } from "@/hooks/use-toast"
+import {  useToast } from "@/hooks/use-toast"
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,20 +29,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { post } from "@/app/utils/PostGetData";
-import { cookies } from "next/headers";
 import { formMeta } from "@/app/utils/forms/schema";
 import { encrypt } from "@/app/utils/encryption";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ObjectId } from "mongodb";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 interface FormSelectProps {
   name: string;
   options: { value: string; label: string }[];
@@ -190,7 +170,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
     />
   )
 
-  const FormSelect = ({ name, options, label, placeholder }: FormSelectProps,) => (
+  const FormSelect = ({ name, options, label }: FormSelectProps,) => (
     <FormField
           control={form.control}
           name={name}
@@ -267,7 +247,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
           className="flex items-center space-x-2 text-white transition-transform transform hover:scale-105 shadow-md"
         >
           <Plus className="h-5 w-5" />
-          <span>Enter Details</span>
+          <span>Select Sport</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

@@ -1,24 +1,23 @@
 "use client"
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "@/app/styles/toast.module.css"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useForm } from "react-hook-form";
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
-import { generateDefaultValues } from "@/app/utils/forms/generateDefaultValues";
-import { toast, useToast } from "@/hooks/use-toast";
+import { z, ZodObject, ZodRawShape, ZodString, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Calendar } from "@/components/ui/calendar";
-import { addYears, format, min } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -35,8 +34,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { formMeta } from "@/app/utils/forms/schema";
-import { Label } from "@radix-ui/react-label";
-import { title } from "process";
 import { post } from "@/app/utils/PostGetData";
 
 interface FormSelectProps {
@@ -50,7 +47,7 @@ const getAuthToken = (): string | null => {
   const authToken = cookies.find(cookie => cookie.startsWith("authToken="));
   return authToken ? authToken.split("=")[1] : null;
 };
-const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta,defaultvalues:Record<string,any>,id:string }> = ({ schema, draftSchema, meta,defaultvalues,id }) => {
+const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta, defaultvalues: Record<string, any>, formId: string }> = ({ schema, draftSchema, meta, defaultvalues, formId }) => {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
@@ -77,36 +74,36 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
       if (currentCount > 0) {
         const indexToRemove = currentCount - 1;
-        
+
         // Get the current form values
         const currentValues = form.getValues();
-        
+
         // Parse the field path to handle nested arrays correctly
         const pathSegments = fieldPath.split('.');
         const arrayFieldName = pathSegments[pathSegments.length - 1];
-        
+
         // Get the parent object containing the array
         let parentObject = currentValues;
         for (let i = 0; i < pathSegments.length - 1; i++) {
           parentObject = parentObject[pathSegments[i]];
         }
-        
+
         // If the array exists in the parent object
         if (Array.isArray(parentObject[arrayFieldName])) {
           // Remove the last element from the array
           parentObject[arrayFieldName].splice(indexToRemove, 1);
-          
+
           // Unregister all fields for the removed index
           Object.keys(form.getValues())
             .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
             .forEach(key => {
               form.unregister(key);
             });
-          
+
           // Update form values
           form.reset(currentValues);
         }
-        
+
         // Update array count
         setArrayFieldCounts(prev => ({
           ...prev,
@@ -119,46 +116,82 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    console.log(data);
-     // Set loading state to true
+    // console.log(data);
+
     try {
       if (isSaveDraft) {
-        
         setIsSubmittingDraft(true);
-        // const response = await post<{ success: boolean; }>(`/api/form/saveFrom`, {
-        //   fields:data,
-        //   isDraft:true,
-        //   formId:id,
-        //   cookies: getAuthToken,
-        // });
-        // Handle saving the draft data (e.g., save to localStorage or draft API)
-        toast({
-          title: "Draft Saved",
-          description: "Your form draft has been saved.",
-          className: styles["mobile-toast"]
-        });
+
+        const response = await post<{ success: boolean; error?: { message: string } }>(
+          `/api/form/saveForm`,
+          {
+            fields: data,
+            isDraft: true,
+            formId: formId,
+            cookies: getAuthToken,
+          }
+        );
+        // console.log(response);
+        // Handle response for draft saving
+        if (response.data?.success) {
+          toast({
+            title: "Draft Saved",
+            description: "Your form draft has been saved successfully.",
+            className: styles["mobile-toast"],
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: `${response.error?.message || "Failed to save your draft. Please try again."}`,
+            className: styles["mobile-toast"],
+          });
+        }
       } else {
         setIsSubmitting(true);
-        const response = await post<{ success: boolean; }>(`/api/form/saveFrom`, {
-          fields:data,
-          isDraft:false,
-          formId:id,
-          cookies: getAuthToken,
-        });
-        // Handle form submission (e.g., submit to API)
-        toast({
-          title: "Submission Successful",
-          description: "Your form data has been submitted.",
-          className: styles["mobile-toast"]
-        });
+
+        const response = await post<{ success: boolean; error?: { message: string } }>(
+          `/api/form/saveForm`,
+          {
+            fields: data,
+            isDraft: false,
+            formId: formId,
+            cookies: getAuthToken,
+          }
+        );
+
+        // Handle response for form submission
+        if (response.data?.success) {
+          toast({
+            title: "Submission Successful",
+            description: "Your form data has been submitted successfully.",
+            className: styles["mobile-toast"],
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: `${response.error?.message || "Failed to submit your form. Please try again."}`,
+            className: styles["mobile-toast"],
+          });
+        }
       }
     } catch (error) {
       console.error("Submission error:", error);
+
+      // Display error toast for unexpected errors
+      toast({
+        variant: "destructive",
+        title: "Unexpected Error",
+        description: "An error occurred while processing your request. Please try again later.",
+        className: styles["mobile-toast"],
+      });
     } finally {
       setIsSubmittingDraft(false);
       setIsSubmitting(false); // Reset loading state
     }
   }
+
 
   // Button click handler to toggle save draft
   const handleSaveDraftClick = () => {
@@ -196,7 +229,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       )}
     />
   ));
-  
+
 
   const FormDate = React.memo(({ name, label, placeholder }: { name: string; label: string; placeholder: string }) => {
     const currentDate = new Date();
@@ -357,7 +390,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       )}
     />
   ));
-  
+
 
 
 
@@ -455,6 +488,10 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
             </div>
           )
         });
+        FormInput.displayName = "FormInput";
+        FormDate.displayName = "FormDate";
+        FormSelect.displayName = "FormSelect";
+        // const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts]);
 
         return (
           <div key={fieldPath} className="nested-form">
@@ -514,7 +551,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6 mx-auto bg-white rounded-xl  p-8 mt-8">
         {memoizedFormFields}
         <div className="flex justify-end gap-4 mt-6">
-        <Button
+          <Button
             onClick={handleSaveDraftClick}
 
             type="submit"

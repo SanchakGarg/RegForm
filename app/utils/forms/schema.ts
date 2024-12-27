@@ -1,5 +1,6 @@
 // ---------- Interfaces ----------
 import { z } from "zod";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Page {
     pageName: string;
@@ -88,7 +89,7 @@ export const playerFieldsDraft = z.object({
 });
 
 export const playerMeta: formMeta = {
-    title: { label: "Player Details" },
+    title: { label: "Player" },
     subtitle: { label: "Player " },
     name: { label: "Name", placeholder: "Name" },
     date: { label: "Date Of Birth", placeholder: "Pick a date" },
@@ -198,7 +199,9 @@ const swimmingCategories = [
 ] as const;
 
 export const ShootingCategories = 
-[    "10 Meter Air Rifle (Mixed) Individual",
+
+[   "Select Category",
+     "10 Meter Air Rifle (Mixed) Individual",
     "10 Meter Air Pistol (Mixed) Individual"
 ]as const;
 

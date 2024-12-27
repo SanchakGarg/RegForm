@@ -1,24 +1,25 @@
-import { encrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 
-interface FormObj {
-  ownerId: Object;
-  fields?: Object;
-  createdAt: Date;
-  status: string;
-  updatedAt: Date;
-  title: string;
-}
+// interface FormObj {
+//   ownerId: Object;
+//   fields?: Object;
+//   createdAt: Date;
+//   status: string;
+//   updatedAt: Date;
+//   title: string;
+// }
 
 export async function POST(req: NextRequest) {
   try {
     // Ensure the request has a JSON body
     const data = await req.json();
-    console.log("Received data:", data);
+    // console.log("Received data:", data);
     if (!data || Object.keys(data).length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid or empty data" },

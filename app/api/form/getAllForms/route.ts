@@ -1,22 +1,23 @@
-import { encrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
-interface FormObj {
-  ownerId: Object;
-  fields?: Object;
-  createdAt: Date;
-  status:string;
-  updatedAt: Date;
-  title: string;
-}
+// interface FormObj {
+//   ownerId: Object;
+//   fields?: Object;
+//   createdAt: Date;
+//   status:string;
+//   updatedAt: Date;
+//   title: string;
+// }
 
-interface FetchUserResponse {
-  data: { _id: Object };
-}
+// interface FetchUserResponse {
+//   data: { _id: Object };
+// }
 
 export async function POST(req: NextRequest) {
   try {

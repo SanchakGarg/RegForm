@@ -1,4 +1,6 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { decrypt } from "@/app/utils/encryption";

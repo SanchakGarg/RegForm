@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 export interface User {
   _id:Object;
   name: string;

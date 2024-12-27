@@ -1,4 +1,5 @@
-import { z, ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects } from "zod";
+import { ZodObject, ZodRawShape, ZodString, ZodNumber, ZodBoolean, ZodArray, ZodDate, ZodEnum, ZodEffects } from "zod";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const generateDefaultValues = (schema: ZodObject<ZodRawShape>): Record<string, any> => {
   const defaultValues: Record<string, any> = {};

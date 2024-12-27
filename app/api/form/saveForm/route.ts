@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection, ObjectId } from "mongodb";
@@ -13,11 +15,11 @@ interface FormObj {
   title: string;
 }
 
-export async function PUT(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     // Ensure the request has a JSON body
     const data = await req.json();
-    console.log("Received data:", data);
+    // console.log("Received data:", data);
     if (!data || Object.keys(data).length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid or empty data" },
@@ -32,7 +34,7 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    // console.log(fields);  
     const email = getEmailFromToken(req);
     if (!email) {
       return NextResponse.json(
@@ -47,6 +49,7 @@ export async function PUT(req: NextRequest) {
     // Fetch form data based on formId
     const form = await formCollection.findOne({ _id: new ObjectId(formId) });
     if (!form) {
+      // console.log("formNotFound");
       return NextResponse.json(
         { success: false, message: "Form not found" },
         { status: 404 }
@@ -92,7 +95,7 @@ export async function PUT(req: NextRequest) {
 
     // Update the form in the database
     await formCollection.updateOne(
-      { _id: formId },
+      { _id: new ObjectId(formId) },
       { $set: updatedData }
     );
 

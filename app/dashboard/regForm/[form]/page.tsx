@@ -82,7 +82,7 @@ try{
           <HeadingWithUnderline
             text={sports[title]}
             desktopSize="md:text-6xl"
-            mobileSize="text-3xl sm:text-2xl"
+            mobileSize="text-5xl sm:text-2xl"
           />
           <RenderForm
             schema={eventSchema.subEvents[title].specificPages[0].fields}

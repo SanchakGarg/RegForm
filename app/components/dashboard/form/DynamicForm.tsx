@@ -56,14 +56,21 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   const [arrayFieldCounts, setArrayFieldCounts] = useState<Record<string, number>>({});
   const [isSaveDraft, setIsSaveDraft] = useState(false);
   const formSchema = isSaveDraft ? draftSchema : schema;
+  const [hasReset, setHasReset] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     // defaultValues: {},
     
   });
   useEffect(() => {
-    form.reset(defaultvalues); // Call reset inside useEffect to update values after render
-  }, [form, defaultvalues]);   const addFieldToArray = useCallback(
+    if (defaultvalues) {
+      form.reset(defaultvalues);
+      // Signal that reset is complete
+      setHasReset(!hasReset);
+    }
+  }, [form, defaultvalues]);
+   const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
       setArrayFieldCounts((prev) => ({
         ...prev,
@@ -388,12 +395,12 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
         <FormItem>
           <FormLabel className="font-bold">{label}</FormLabel>
           <Select
+          {...field}
             onValueChange={(value) => {
-              form.setValue(name, value);  // Corrected to use dynamic field name
               // If the selected value matches the placeholder, set to undefined
               field.onChange(value === placeholder ? undefined : value);
             }}
-            defaultValue={form.getValues(name) || placeholder}  // Ensure defaultValue is handled
+            defaultValue={field.value}  // Ensure defaultValue is handled
           >
             <FormControl>
               <SelectTrigger>
@@ -568,13 +575,14 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
 
-  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts]);
+  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6 mx-auto bg-white rounded-xl  p-8 mt-8">
-        {memoizedFormFields}
-        <div className="flex justify-end gap-4 mt-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} 
+      className="sm:w-2/3 space-y-6 mx-auto bg-white rounded-xl  sm:p-8  sm:mt-8"
+      >
+      <div className="flex justify-end gap-4 mt-6 ">
           <Button
             onClick={handleSaveDraftClick}
 
@@ -588,6 +596,37 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
               "Save Draft"
             )}
           </Button>
+          
+          <Button
+            onClick={handleSubmitClick}
+
+            type="submit"
+            disabled={isSubmitting}
+            className=" font-semibold py-2.5 px-6  duration-200"
+          >
+            {isSubmitting ? (
+              <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+            ) : (
+              "Submit"
+            )}
+          </Button>
+        </div>
+        {memoizedFormFields}
+        <div className="flex justify-end gap-4 mt-6 pb-6">
+          <Button
+            onClick={handleSaveDraftClick}
+
+            type="submit"
+            disabled={isSubmittingDraft}
+            className="bg-white text-black hover:bg-slate-100 border-2 border-solid border-black font-semibold py-2.5 px-6  duration-200"
+          >
+            {isSubmittingDraft ? (
+              <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full"></div>
+            ) : (
+              "Save Draft"
+            )}
+          </Button>
+          
           <Button
             onClick={handleSubmitClick}
 

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "@/app/styles/toast.module.css"
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -58,9 +58,12 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   const formSchema = isSaveDraft ? draftSchema : schema;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultvalues,
+    // defaultValues: {},
+    
   });
-  const addFieldToArray = useCallback(
+  useEffect(() => {
+    form.reset(defaultvalues); // Call reset inside useEffect to update values after render
+  }, [form, defaultvalues]);   const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
       setArrayFieldCounts((prev) => ({
         ...prev,
@@ -70,52 +73,69 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
     [setArrayFieldCounts]
   );
   const removeFieldToArray = useCallback(
-    (fieldPath: string) => {
-      const currentCount = arrayFieldCounts[fieldPath] || 0;
-
-      if (currentCount > 0) {
-        const indexToRemove = currentCount - 1;
-
-        // Get the current form values
-        const currentValues = form.getValues();
-
-        // Parse the field path to handle nested arrays correctly
-        const pathSegments = fieldPath.split('.');
-        const arrayFieldName = pathSegments[pathSegments.length - 1];
-
-        // Get the parent object containing the array
-        let parentObject = currentValues;
-        for (let i = 0; i < pathSegments.length - 1; i++) {
-          parentObject = parentObject[pathSegments[i]];
+    (fieldPath: string, min: number) => {
+      setArrayFieldCounts((prev) => {
+        const currentCount = prev[fieldPath] || 0;
+  
+        // If the array is null or has length 0, set the count to min - 1
+        if (currentCount === 0) {
+          return {
+            ...prev,
+            [fieldPath]: min - 1, // Allows going below min but not below 0
+          };
         }
-
-        // If the array exists in the parent object
-        if (Array.isArray(parentObject[arrayFieldName])) {
-          // Remove the last element from the array
-          parentObject[arrayFieldName].splice(indexToRemove, 1);
-
-          // Unregister all fields for the removed index
-          Object.keys(form.getValues())
-            .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
-            .forEach(key => {
-              form.unregister(key);
-            });
-
-          // Update form values
-          form.reset(currentValues);
+  
+        // Only decrement if the count is greater than min
+        if (currentCount > min) {
+          return {
+            ...prev,
+            [fieldPath]: currentCount - 1,
+          };
         }
-
-        // Update array count
-        setArrayFieldCounts(prev => ({
+  
+        // If already at the min, allow it to go below min but ensure it doesn't go below 0
+        return {
           ...prev,
-          [fieldPath]: currentCount - 1
-        }));
+          [fieldPath]: currentCount - 1 >= 0 ? currentCount - 1 : 0,
+        };
+      });
+  
+      // Handle form values after updating the count
+      const currentCount = arrayFieldCounts[fieldPath] || 0;
+      const indexToRemove = currentCount - 1;
+  
+      // Get the current form values
+      const currentValues = form.getValues();
+  
+      // Parse the field path to handle nested arrays correctly
+      const pathSegments = fieldPath.split('.');
+      const arrayFieldName = pathSegments[pathSegments.length - 1];
+  
+      // Get the parent object containing the array
+      let parentObject = currentValues;
+      for (let i = 0; i < pathSegments.length - 1; i++) {
+        parentObject = parentObject[pathSegments[i]];
+      }
+  
+      // If the array exists in the parent object
+      if (Array.isArray(parentObject[arrayFieldName])) {
+        // Remove the last element from the array
+        parentObject[arrayFieldName].splice(indexToRemove, 1);
+  
+        // Unregister all fields for the removed index
+        Object.keys(form.getValues())
+          .filter(key => key.startsWith(`${fieldPath}[${indexToRemove}]`))
+          .forEach(key => {
+            form.unregister(key);
+          });
+  
+        // Update form values
+        form.reset(currentValues);
       }
     },
     [arrayFieldCounts, form]
   );
-
-
+  
   async function onSubmit(data: z.infer<typeof formSchema>) {
     // console.log(data);
 
@@ -369,14 +389,15 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
           <FormLabel className="font-bold">{label}</FormLabel>
           <Select
             onValueChange={(value) => {
+              form.setValue(name, value);  // Corrected to use dynamic field name
               // If the selected value matches the placeholder, set to undefined
               field.onChange(value === placeholder ? undefined : value);
             }}
-            defaultValue={field.value}
+            defaultValue={form.getValues(name) || placeholder}  // Ensure defaultValue is handled
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
+                <SelectValue placeholder={placeholder} />  {/* Placeholder is now correctly handled */}
               </SelectTrigger>
             </FormControl>
             <SelectContent>
@@ -392,6 +413,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       )}
     />
   ));
+  
 
 
 
@@ -503,7 +525,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
               {arrayCount < max && (
                 <Button
                   type="button"
-                  onClick={() => addFieldToArray(fieldPath, min)}
+                  onClick={() => addFieldToArray(fieldPath, Math.max(defaultLength, min))}
                   className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
                 >
                   Add Player
@@ -512,7 +534,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
               {arrayCount > min && (
                 <Button
                   type="button"
-                  onClick={() => removeFieldToArray(fieldPath)}
+                  onClick={() => removeFieldToArray(fieldPath,Math.max(defaultLength,min))}
                   className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
                 >
                   Remove Player

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
 
     const{emaile,passworde} = await req.json();
-    const email = emaile;
+    const email = emaile.toLowerCase();
     const password = passworde;
     // Validate inputs
     if (!email || !password) {

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     await collection.insertOne({
       name,
       universityName,
-      email,
+      email:email.toLowerCase(),
       password: hashedPassword,
       emailVerified: false,
       VerificationId: vid,

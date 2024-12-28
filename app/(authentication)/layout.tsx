@@ -1,4 +1,5 @@
 
+import { Suspense } from "react";
 import "../globals.css";
 import Image from "next/image";
 
@@ -18,7 +19,7 @@ export default function RootLayout({
           height={38}
           priority
         />
-        {children}
+        <Suspense>{children}</Suspense>
       </main>
     </div>
         

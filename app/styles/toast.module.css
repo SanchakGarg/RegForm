@@ -1,0 +1,11 @@
+/* CSS to position the toast at the bottom for mobile */
+@media (max-width: 768px) {
+    .mobile-toast {
+      position: fixed;
+      bottom: 10px;  /* Adjust this value for the desired bottom distance */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999; /* Ensure the toast is on top of other elements */
+    }
+  }
+  

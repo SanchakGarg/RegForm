@@ -1,201 +1,434 @@
 // ---------- Interfaces ----------
-/*
-Defines the core structure of form fields, containers, pages, sub-events, and the overall event schema.
-*/
-interface FormField {
-    name: string; // Field identifier
-    label: string; // Display label for the field
-    type: "text" | "email" | "number" | "date" | "select"; // Input type
-    required: boolean; // Whether the field is mandatory
-    options?: string[]; // For select fields, options to display
-    validator?: (value: any) => string | null; // Custom validator (returns error message or null if valid)
-}
-
-interface FormFieldContainer {
-    title?: string; // Title of the container (e.g., "Coach Details" or "Player Details")
-    repeatable?: boolean; // Whether the container is repeatable
-    minRepeats?: number; // Minimum number of repeats
-    maxRepeats?: number; // Maximum number of repeats
-    fields: FormField[]; // List of fields in the container
-}
+import { z } from "zod";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Page {
-    fields?: (FormField | FormFieldContainer)[]; // Fields or containers for the page
+    pageName: string;
+    fields: z.ZodObject<any>;
+    meta: formMeta;
+    draft: z.ZodObject<any>;
 }
 
-interface SubEventSchema {
-    eventName: string; // Name of the event
-    specificPages: Page[]; // List of specific pages for the event
+interface SubEvent {
+    eventName: string;
+    specificPages: Page[];
 }
 
 interface EventSchema {
-    commonPages: Page[]; // Common pages shared across all sub-events
-    subEvents: SubEventSchema[]; // Sub-events with specific pages
+    commonPages: Page[];
+    subEvents: Record<string, SubEvent>;
 }
 
-// ---------- Validators ----------
-/*
-Custom validation functions for email, number, and date fields.
-*/
-const emailValidator = (value: any): string | null => {
-    if (typeof value !== "string" || value.trim() === "") {
-        return "This field must be a valid email address";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-        return "Invalid email address";
-    }
-    return null;
-};
+interface fieldMeta {
+    label: string;
+    placeholder?: string;
+}
 
-const numberValidator = (value: any): string | null => {
-    if (typeof value !== "number") {
-        return "This field must be a number";
-    }
-    if (value.toString().length > value) {
-        return `This field must not exceed ${value} digits`;
-    }
-    return null;
-};
-
-const dateValidator = (value: any): string | null => {
-    const minDate = new Date("1995-01-01");
-    const maxDate = new Date("2005-12-31");
-
-    if (typeof value !== "string" && !(value instanceof Date)) {
-        return "This field must be a valid date";
-    }
-
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-        return "Invalid date format";
-    }
-
-    if (date < minDate) {
-        return `Date must not be earlier than ${minDate.toDateString()}`;
-    }
-    if (date > maxDate) {
-        return `Date must not be later than ${maxDate.toDateString()}`;
-    }
-
-    return null;
-};
+export interface formMeta {
+    [key: string]: fieldMeta | formMeta;
+}
 
 // ---------- Sports List ----------
-/*
-List of available sports for the event schema.
-*/
-export const sports = [
-    "Badminton (Men)",
-    "Badminton (Women)",
-    "Basketball (Men)",
-    "Basketball (Women)",
-    "Chess (Mixed)",
-    "Cricket (Men)",
-    "Football (Men)",
-    "Futsal (Women)",
-    "Tennis (Mixed)",
-    "Volleyball (Men)",
-    "Volleyball (Women)",
-    "Table Tennis (Men)",
-    "Table Tennis (Women)",
-    "Squash (Men)",
-    "Squash (Women)",
-    "Swimming (Men)",
-    "Swimming (Women)",
-    "8 Ball Pool (Men)",
-    "Snooker (Men)",
-    "Shooting",
-];
+export const sports : Record<string,string> = {
+    Badminton_Men: "Badminton (Men)",
+    Badminton_Women: "Badminton (Women)",
+    Basketball_Men: "Basketball (Men)",
+    Basketball_Women: "Basketball (Women)",
+    Chess_Mixed: "Chess (Mixed)",
+    Cricket_Men: "Cricket (Men)",
+    Football_Men: "Football (Men)",
+    Futsal_Women: "Futsal (Women)",
+    Tennis_Mixed: "Tennis (Mixed)",
+    Volleyball_Men: "Volleyball (Men)",
+    Volleyball_Women: "Volleyball (Women)",
+    Table_Tennis_Men: "Table Tennis (Men)",
+    Table_Tennis_Women: "Table Tennis (Women)",
+    Squash_Men: "Squash (Men)",
+    Squash_Women: "Squash (Women)",
+    Swimming_Men: "Swimming (Men)",
+    Swimming_Women: "Swimming (Women)",
+    Ball_Pool_Men: "8 Ball Pool (Men)",
+    Snooker_Men: "Snooker (Men)",
+    Shooting: "Shooting"
+} as const;
 
-// ---------- Generic Fields ----------
-/*
-Common fields used across various containers in the schema.
-*/
-const genericFields: FormField[] = [
-    { name: "name", label: "Player Name", type: "text", required: true },
-    {
-        name: "DOB",
-        label: "Player Date of Birth",
-        type: "date",
-        required: true,
-        validator: dateValidator,
-    },
-    { name: "email", label: "Player Email", type: "email", required: true, validator: emailValidator },
-    {
-        name: "phoneNumber",
-        label: "Player Phone Number",
-        type: "number",
-        required: true,
-        validator: numberValidator,
-    },
-];
+// ---------- player Fields ----------
+export const playerFields = z.object({
+    name: z.string().min(1, "Name is required"),
+    date: z.date().refine(
+        (date) => {
+            const currentDate = new Date();
+            const minDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+            const maxDate = new Date(currentDate.getFullYear() - 17, currentDate.getMonth(), currentDate.getDate());
+            return date >= minDate && date <= maxDate;
+        },
+        { message: "age must be between 17 and 25 years old" }
+    ),
+    email: z.string().min(1, "Email is required").email("Invalid email address"),
+    phone: z.string().refine(
+        (phone) => /^[0-9]{10,15}$/.test(phone),
+        { message: "Phone number must be atleast 10 digits" }
+    ),
+});
+export const playerFieldsDraft = z.object({
+    name: z.string().min(1, "Name is required").optional(),
+    date: z.date().refine(
+        (date) => {
+            const currentDate = new Date();
+            const minDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+            const maxDate = new Date(currentDate.getFullYear() - 17, currentDate.getMonth(), currentDate.getDate());
+            return date >= minDate && date <= maxDate;
+        },
+        { message: "age must be between 17 and 25 years old" }
+    ).optional(),
+    email: z.string().min(1, "Email is required").email("Invalid email address").optional(),
+    phone: z.string().refine(
+        (phone) => /^[0-9]{10,15}$/.test(phone),
+        { message: "Phone number must be atleast 10 digits" }
+    ).optional(),
+});
+
+export const playerMeta: formMeta = {
+    title: { label: "Player" },
+    subtitle: { label: "Player " },
+    name: { label: "Name", placeholder: "Name" },
+    date: { label: "Date Of Birth", placeholder: "Pick a date" },
+    email: { label: "Email", placeholder: "Email" },
+    phone: { label: "Phone Number", placeholder: "Phone Number" },
+    gender: { label: "Gender", placeholder: "Select Gender" },
+    category1:{label: "Category 1",placeholder:"Select Category"},
+    category2:{label: "Category 2",placeholder:"Select Category"},
+
+};
 
 // ---------- Coach Fields ----------
-/*
-Specific fields for the coach details container.
-*/
-const coachFields: FormField[] = [
-    { name: "name", label: "Coach Name", type: "text", required: true },
-    {
-        name: "gender",
-        label: "Coach Gender",
-        type: "select",
-        required: true,
-        options: ["Male", "Female", "Other"],
-    },
-    { name: "email", label: "Coach Email", type: "email", required: true, validator: emailValidator },
-    {
-        name: "phoneNumber",
-        label: "Coach Phone Number",
-        type: "number",
-        required: true,
-        validator: numberValidator,
-    },
-];
+export const coachFields = z.object({
+    name: z.string().min(1, "Name is required").optional(),
+    email: z.string().email("Invalid email address").optional(),
+    phone: z.string().refine(
+        (phone) => /^[0-9]{10,15}$/.test(phone),
+        { message: "Phone number must be atleast 10 digits" }
+    ).optional(),
+    gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),
+});
 
-// ---------- Sport Field ----------
-/*
-Field for selecting sports.
-*/
-const sportField: FormField = {
-    name: "selectSports",
-    label: "Select Sports",
-    type: "select",
-    required: true,
-    options: sports,
+export const coachFieldsMeta: formMeta = {
+    title: { label: "Coach / Staff Member" },
+    name: { label: "Name", placeholder: "Name" },
+    gender: { label: "Gender", placeholder: "Select Gender" },
+    email: { label: "Email", placeholder: "Email" },
+    phone: { label: "Phone Number", placeholder: "Phone Number" }
+};
+
+// ---------- Sport Field ---------
+export const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined => {
+    return Object.keys(obj).find((key) => obj[key] === value);
+}; // Output: "Basketball_Men"
+
+export const sportField = z.object({
+    sports: z.enum([
+        "Badminton (Men)",
+        "Badminton (Women)",
+        "Basketball (Men)",
+        "Basketball (Women)",
+        "Chess (Mixed)",
+        "Cricket (Men)",
+        "Football (Men)",
+        "Futsal (Women)",
+        "Tennis (Mixed)",
+        "Volleyball (Men)",
+        "Volleyball (Women)",
+        "Table Tennis (Men)",
+        "Table Tennis (Women)",
+        "Squash (Men)",
+        "Squash (Women)",
+        "Swimming (Men)",
+        "Swimming (Women)",
+        "8 Ball Pool (Men)",
+        "Snooker (Men)",
+        "Shooting",
+    ], { message: "Select a sport" }),
+});
+
+export const sportFieldMeta: formMeta = {
+    sports: { label: "Select a Sport", placeholder: "Select a sport" }
 };
 
 // ---------- Event Schema ----------
-/*
-Defines the overall event schema including common pages and sub-events.
-*/
+
+
+
+
+
+
+const generatePageWithPlayerFields = (minPlayers: number, maxPlayers: number) => {
+    return {
+        pageName: "Coach Details",
+        fields: z.object({
+            coachFields,
+            playerFields: z.array(playerFields)
+                .min(minPlayers, `Fill details of minimum ${minPlayers} players`)
+                .max(maxPlayers, `A maximum of ${maxPlayers} players are allowed`),
+        }),
+        draft: z.object({
+            coachFields,
+            playerFields: z.array(playerFieldsDraft)
+                .min(minPlayers, `Fill details of minimum ${minPlayers} players`)
+                .max(maxPlayers, `A maximum of ${maxPlayers} players are allowed`),
+        }),
+        meta: {
+            coachFields: coachFieldsMeta,
+            playerFields: playerMeta,
+        },
+    };
+};
+
+
+
+
+const swimmingCategories = [
+    "Select Category",
+    "50m Freestyle (Individual)",
+    "50m Butterfly (Individual)",
+    "50m Breaststroke (Individual)",
+    "50m Backstroke (Individual)",
+    "100m Freestyle (Individual)",
+    "100m Individual Medley (Individual)",
+    "200m Freestyle Relay (mixed)",
+    "200m Medley Relay (mixed)"
+] as const;
+
+export const ShootingCategories = 
+
+[   "Select Category",
+     "10 Meter Air Rifle (Mixed) Individual",
+    "10 Meter Air Pistol (Mixed) Individual"
+]as const;
+
+
+
+
+
 export const eventSchema: EventSchema = {
     commonPages: [
         {
-            fields: [sportField],
+            pageName: "Sports Selection",
+            fields: sportField,
+            meta: sportFieldMeta,
+            draft: sportField,
         },
     ],
-    subEvents: [
-        {
-            eventName: "Basketball",
+    subEvents: {
+        Badminton_Men: {
+            eventName: sports.Badminton_Men,
             specificPages: [
-                {
-                    fields: [
-                        {
-                            title: "Coach Details",
-                            fields: coachFields,
-                        },
-                        {
-                            title: "Player Details",
-                            repeatable: true,
-                            minRepeats: 2,
-                            maxRepeats: 12,
-                            fields: genericFields,
-                        },
-                    ],
-                },
+                generatePageWithPlayerFields(5, 7), // 5 to 7 players
             ],
         },
-    ],
+        Badminton_Women: {
+            eventName: sports.Badminton_Women,
+            specificPages: [
+                generatePageWithPlayerFields(5, 7), // 5 to 7 players
+            ],
+        },
+        Basketball_Men: {
+            eventName: sports.Basketball_Men,
+            specificPages: [
+                generatePageWithPlayerFields(5, 12), // 5 to 12 players
+            ],
+        },
+        Basketball_Women: {
+            eventName: sports.Basketball_Women,
+            specificPages: [
+                generatePageWithPlayerFields(5, 12), // 5 to 12 players
+            ],
+        },
+        Cricket_Men: {
+            eventName: sports.Cricket_Men,
+            specificPages: [
+                generatePageWithPlayerFields(11, 15), // 11 to 15 players
+            ],
+        },
+        Football_Men: {
+            eventName: sports.Football_Men,
+            specificPages: [
+                generatePageWithPlayerFields(9, 14), // 9 to 14 players
+            ],
+        },
+        Futsal_Women: {
+            eventName: sports.Futsal_Women,
+            specificPages: [
+                generatePageWithPlayerFields(6, 9), // 6 to 9 players
+            ],
+        },
+        Volleyball_Men: {
+            eventName: sports.Volleyball_Men,
+            specificPages: [
+                generatePageWithPlayerFields(6, 12), // 6 to 12 players
+            ],
+        },
+        Volleyball_Women: {
+            eventName: sports.Volleyball_Women,
+            specificPages: [
+                generatePageWithPlayerFields(6, 12), // 6 to 12 players
+            ],
+        },
+        Table_Tennis_Men: {
+            eventName: sports.Table_Tennis_Men,
+            specificPages: [
+                generatePageWithPlayerFields(3, 5), // 3 to 5 players
+            ],
+        },
+        Table_Tennis_Women: {
+            eventName: sports.Table_Tennis_Women,
+            specificPages: [
+                generatePageWithPlayerFields(3, 5), // 3 to 5 players
+            ],
+        },
+        Squash_Men: {
+            eventName: sports.Squash_Men,
+            specificPages: [
+                generatePageWithPlayerFields(5, 5), // 5 players
+            ],
+        },
+        Squash_Women: {
+            eventName: sports.Squash_Women,
+            specificPages: [
+                generatePageWithPlayerFields(5, 5), // 5 players
+            ],
+        },
+        Ball_Pool_Men: {
+            eventName: sports.Ball_Pool_Men,
+            specificPages: [
+                generatePageWithPlayerFields(3, 4), // 3 to 4 players
+            ],
+        },
+        Snooker_Men: {
+            eventName: sports.Snooker_Men,
+            specificPages: [
+                generatePageWithPlayerFields(3, 4), // 3 to 4 players
+            ],
+        },
+        Chess_Mixed:{
+            eventName:sports.Chess_Mixed,
+            specificPages:[
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" })}))
+                            .min(4, `Fill details of minimum ${4} players`)
+                            .max(5, `A maximum of ${5} players are allowed`),
+                    }),
+                    draft: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional()}))
+                            .min(4, `Fill details of minimum ${4} players`)
+                            .max(5, `A maximum of ${5} players are allowed`),
+                    }),
+                    meta: {
+                        coachFields: coachFieldsMeta,
+                        playerFields: playerMeta,
+                    },
+                }
+            ],
+        },
+        Tennis_Mixed:{
+            eventName:sports.Tennis_Mixed,
+            specificPages:[
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" })}))
+                            .min(5, `Fill details of minimum ${5} players`)
+                            .max(9, `A maximum of ${9} players are allowed`),
+                    }),
+                    draft: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional()}))
+                            .min(5, `Fill details of minimum ${5} players`)
+                            .max(9, `A maximum of ${9} players are allowed`),
+                    }),
+                    meta: {
+                        coachFields: coachFieldsMeta,
+                        playerFields: playerMeta,
+                    },
+                }
+            ],
+        },
+        Swimming_Men:{
+            eventName:sports.Swimming_Men,
+            specificPages:[
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFields.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                            .min(2, `Fill details of minimum ${5} players`)
+                            .max(8, `A maximum of ${9} players are allowed`),
+                    }),
+                    draft: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFieldsDraft.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                            .min(2, `Fill details of minimum ${5} players`)
+                            .max(8, `A maximum of ${9} players are allowed`),
+                    }),
+                    meta: {
+                        coachFields: coachFieldsMeta,
+                        playerFields: playerMeta,
+                    },
+                }
+            ],
+        },
+        Swimming_Women:{
+            eventName:sports.Swimming_Women,
+            specificPages:[
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFields.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                            .min(2, `Fill details of minimum ${2} players`)
+                            .max(8, `A maximum of ${8} players are allowed`),
+                    }),
+                    draft: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFieldsDraft.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                            .min(2, `Fill details of minimum ${2} players`)
+                            .max(8, `A maximum of ${8} players are allowed`),
+                    }),
+                    meta: {
+                        coachFields: coachFieldsMeta,
+                        playerFields: playerMeta,
+                    },
+                }
+            ],
+        },
+        Shooting:{
+            eventName:sports.Shooting,
+            specificPages:[
+                {
+                    pageName: "Coach Details",
+                    fields: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }),category1: z.enum(ShootingCategories, { message: "Category 1 is required" })}))
+                            .min(1, `Fill details of minimum ${1} players`)
+                            .max(10, `A maximum of ${10} players are allowed`),
+                    }),
+                    draft: z.object({
+                        coachFields,
+                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),category1: z.enum(ShootingCategories, { message: "Category 1 is required" }).optional()}))
+                            .min(1, `Fill details of minimum ${1} players`)
+                            .max(10, `A maximum of ${10} players are allowed`),
+                    }),
+                    meta: {
+                        coachFields: coachFieldsMeta,
+                        playerFields: playerMeta,
+                    },
+                }
+            ],
+        },
+    },
+
 };

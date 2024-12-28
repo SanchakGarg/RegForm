@@ -3,45 +3,58 @@ import { post } from "@/app/utils/PostGetData";
 
 // Define the expected shape of the response inline
 type PostResponse = {
-  success: boolean
+  success: boolean;
 };
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = req.cookies.get("authToken")?.value;
 
+  // Check if the user is trying to access the SignIn page
+  const isSignInPage = req.nextUrl.pathname === "/SignIn";
+
   if (!token) {
-    return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
+    // If there's no token and the user is on a protected route, redirect to SignIn
+    if (!isSignInPage) {
+      return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
+    }
+    // Allow access to the SignIn page if unauthenticated
+    return NextResponse.next();
   }
 
-  return validateToken(token)
-    .then((isValid) => {
-      if (isValid) {
-        return NextResponse.next();
-      }
+  // Validate the token
+  const isValid = await validateToken(token);
 
-      return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
-    })
-    .catch(() => {
-      return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
-    });
+  if (isValid) {
+    // Redirect authenticated users from the SignIn page to the Dashboard
+    if (isSignInPage) {
+      return NextResponse.redirect(new URL("/dashboard", req.url), { status: 302 });
+    }
+    // Allow access to other routes if authenticated
+    return NextResponse.next();
+  }
+
+  // Redirect to SignIn if the token is invalid
+  return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
 }
 
 // Token validation with inline typing
-async function validateToken(token: string): Promise<boolean> {
+async function  validateToken(token: string): Promise<boolean> {
   const response = await post<{ success: boolean }>(`${process.env.ROOT_URL}api/auth/middleware`, { tokene: token });
 
   if (response.error) {
     console.error("Error during token validation:", response.error);
     return false;
   }
-  if(response.data){
+
+  if (response.data) {
     const data = response.data;
-  return data.success ?? false;
+    return data.success ?? false;
   }
+
   return false;
 }
 
-// Match protected routes
+// Match protected routes and the SignIn page
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/SignIn"], // Add SignIn to the matcher
 };

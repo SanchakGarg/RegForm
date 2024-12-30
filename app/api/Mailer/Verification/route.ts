@@ -59,14 +59,13 @@ const attachments = [
   }
 ];
 
+
   await transporter.sendMail({
     from: `"Verification" <${SMTP_USER}>`,
     to,
     subject: "Verify your account",
     text: `Please verify your email using this Link: ${vlink}`,
-    html: emailContent,attachments
-  });
-  
+    html: emailContent,attachments  });
 }
 
 export async function POST(req: Request) {

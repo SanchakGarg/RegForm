@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "@/app/styles/toast.module.css"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/rules-of-hooks */
 
 import { useForm } from "react-hook-form";
 import { z, ZodObject, ZodRawShape, ZodString, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";

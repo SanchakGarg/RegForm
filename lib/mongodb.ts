@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import {MongoClient } from "mongodb";
 
 // Pull connection string from environment
 const uri = process.env.MONGODB_URI || "";

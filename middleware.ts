@@ -13,6 +13,7 @@ export async function middleware(req: NextRequest) {
   const isSignInPage = req.nextUrl.pathname === "/SignIn";
   const isSignUpPage = req.nextUrl.pathname === "/SignUp";
 
+
   if (!token) {
     // If there's no token and the user is on a protected route, redirect to SignIn
     if (!isSignInPage && !isSignUpPage ) {
@@ -57,5 +58,7 @@ async function validateToken(token: string): Promise<boolean> {
 
 // Match protected routes and the SignIn, SignUp, and Verification pages
 export const config = {
+
   matcher: ["/dashboard/:path*", "/SignIn", "/SignUp"], // Add SignUp and Verification to the matcher
+
 };

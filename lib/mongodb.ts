@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
 // Pull connection string from environment
 const uri = process.env.MONGODB_URI || "";
@@ -25,12 +25,11 @@ if (process.env.NODE_ENV === "development") {
   client = new MongoClient(uri, options);
   clientPromise = client.connect();
 }
-
 // Utility to connect to MongoDB
 export async function connectToDatabase() {
   try {
     const clientInstance = await clientPromise;
-    const db = clientInstance.db(); // You can specify database name here if necessary
+    const db = clientInstance.db(process.env.DB_NAME); // You can specify database name here if necessary
     return { client: clientInstance, db };
   } catch (error) {
     console.error("MongoDB connection error:", error);

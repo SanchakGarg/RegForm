@@ -9,14 +9,27 @@ import { useSearchParams } from "next/navigation";
 import { decrypt } from "@/app/utils/encryption";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import type { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { post } from "@/app/utils/PostGetData";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+
 const getAuthToken = (): string | null => {
   const cookies = document.cookie.split("; ");
   const authToken = cookies.find((cookie) => cookie.startsWith("authToken="));
   return authToken ? authToken.split("=")[1] : null;
 };
+
 function typecastDatesInPlayerFields(playerFields: Record<string, any>[]) {
   playerFields.forEach((obj) => {
     for (const key in obj) {
@@ -27,13 +40,91 @@ function typecastDatesInPlayerFields(playerFields: Record<string, any>[]) {
   });
 }
 
+const MarkdownComponents: Components = {
+  table: ({ children }) => (
+    <table className="min-w-full divide-y divide-gray-200 my-4 border">
+      {children}
+    </table>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-gray-50">
+      {children}
+    </thead>
+  ),
+  tbody: ({ children }) => (
+    <tbody className="bg-white divide-y divide-gray-200">
+      {children}
+    </tbody>
+  ),
+  tr: ({ children }) => (
+    <tr className="hover:bg-gray-50">
+      {children}
+    </tr>
+  ),
+  td: ({ children }) => (
+    <td className="px-6 py-4 whitespace-normal border-r last:border-r-0">
+      {children}
+    </td>
+  ),
+  th: ({ children }) => (
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r last:border-r-0">
+      {children}
+    </th>
+  ),
+  ol: ({ children }) => (
+    <ol className="list-decimal list-outside space-y-2 my-4 ml-4">
+      {children}
+    </ol>
+  ),
+  ul: ({ children }) => (
+    <ul className="list-disc list-outside space-y-2 my-4 ml-4">
+      {children}
+    </ul>
+  ),
+  li: ({ children }) => (
+    <li className="pl-2">
+      {children}
+    </li>
+  ),
+  p: ({ children }) => (
+    <p className="my-4">
+      {children}
+    </p>
+  ),
+  h1: ({ children }) => (
+    <h1 className="text-2xl font-bold my-4">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-xl font-bold my-3">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-lg font-bold my-2">
+      {children}
+    </h3>
+  ),
+  pre: ({ children }) => (
+    <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+      {children}
+    </pre>
+  ),
+  code: ({ children }) => (
+    <code className="bg-gray-100 px-1 rounded">
+      {children}
+    </code>
+  ),
+};
+
 export default function Form() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Record<string, unknown>>({});
   const [title, setTitle] = useState<string>("");
   const [markdownContent, setMarkdownContent] = useState<string>("");
   const searchParams = useSearchParams();
-  const eparam = searchParams.get("i") || ""
+  const eparam = searchParams.get("i") || "";
   const paramI = decrypt(eparam);
   const formId = paramI.id;
 
@@ -47,17 +138,20 @@ export default function Form() {
           return;
         }
 
-        const response = await post<{ success: boolean; data?: Record<string, any> }>(`/api/form/getForm`, {
-          formId,
-          cookies: token,
-        });
+        const response = await post<{ success: boolean; data?: Record<string, any> }>(
+          `/api/form/getForm`,
+          {
+            formId,
+            cookies: token,
+          }
+        );
 
         if (response.data?.success && response.data?.data) {
-try{
-  typecastDatesInPlayerFields(response.data.data.fields.playerFields)
-
-}catch(e){
-}
+          try {
+            typecastDatesInPlayerFields(response.data.data.fields.playerFields);
+          } catch (e) {
+            // Handle error silently
+          }
           setData(response.data.data.fields);
           setTitle(response.data.data.title);
         } else {
@@ -72,7 +166,6 @@ try{
 
     if (formId) getForms();
   }, [formId]);
-
 
   useEffect(() => {
     const fetchMarkdown = async () => {
@@ -91,6 +184,7 @@ try{
 
     if (title) fetchMarkdown();
   }, [title]);
+
   return (
     <div className="w-full mt-6 pb-8 pr-5">
       {loading ? (
@@ -104,27 +198,37 @@ try{
             desktopSize="md:text-6xl"
             mobileSize="text-5xl sm:text-2xl"
           />
+          
           <Drawer>
             <DrawerTrigger asChild>
               <Button variant="link" className="text-blue-500 underline">
                 View Sport Guidelines
               </Button>
             </DrawerTrigger>
+            
             <DrawerContent>
               <DrawerHeader>
-                <DrawerTitle>Guidlines and rules for {sports[title]}</DrawerTitle>
+                <DrawerTitle>Guidelines and rules for {sports[title]}</DrawerTitle>
                 <DrawerDescription></DrawerDescription>
               </DrawerHeader>
-              <div className="px-4 py-2 max-h-[60vh] overflow-y-auto">
-                <ReactMarkdown>{markdownContent}</ReactMarkdown>
+              
+              <div className="px-4 py-2 max-h-[60vh] overflow-y-auto prose prose-sm max-w-none">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={MarkdownComponents}
+                >
+                  {markdownContent}
+                </ReactMarkdown>
               </div>
+              
               <DrawerFooter>
                 <DrawerClose asChild>
-                  <Button >Close</Button>
+                  <Button>Close</Button>
                 </DrawerClose>
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
+          
           <RenderForm
             schema={eventSchema.subEvents[title].specificPages[0].fields}
             draftSchema={eventSchema.subEvents[title].specificPages[0].draft}

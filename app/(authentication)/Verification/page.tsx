@@ -15,8 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import { useRouter } from "next/navigation";
 export default function VerifyAccount() {
+    const router = useRouter(); // Use the useRouter hook
+
   const [error, setError] = useState<string>(""); // Moved inside the component
   const [success, setSuccess] = useState<string>(""); // Moved inside the component
   const [isLoading, setIsLoading] = useState<boolean>(false); // Moved inside the component
@@ -52,6 +54,10 @@ export default function VerifyAccount() {
     }
     setIsLoading(false);
   };
+  const navigateToLogin = () => {
+    router.push("/SignIn"); // Navigate to the login page
+  };
+
   return (
     <Card className="w-[350px]">
       <CardHeader>
@@ -67,7 +73,13 @@ export default function VerifyAccount() {
         {error && <p className="text-red-500">{error}</p>}
         {success && <p className="text-green-500">{success}</p>}
       </CardContent>
-      <CardFooter className="flex justify-end">
+      <CardFooter className="flex justify-between">
+      <Button
+          variant={"outline"}
+          onClick={navigateToLogin} // Add the click handler
+        >
+          Go to Login Page
+        </Button>
       <Button
           onClick={handleResendEmail}
           disabled={isLoading}
@@ -75,6 +87,7 @@ export default function VerifyAccount() {
         >
           {isLoading ? <div className={styles.spinner}></div> : "Resend Email"}
         </Button>
+        
       </CardFooter>
     </Card>
   );

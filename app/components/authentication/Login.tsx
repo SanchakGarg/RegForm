@@ -76,7 +76,7 @@ export function Login() {
                     // If email is not verified, route to verification page
                     setError("Please verify your email before logging in.");
                     await post<{ email: string }>("/api/Mailer/Verification", { email: email });
-                    router.push(`/Verification?v=${encrypt({ email: email })}`);
+                    router.push(`/verification?v=${encrypt({ email: email })}`);
                     return;
                 }
                 

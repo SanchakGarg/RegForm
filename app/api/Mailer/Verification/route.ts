@@ -34,7 +34,7 @@ async function sendEmail(to: string, id: string) {
 
   const vlink = `${ROOT_URL}verify?token=${id}`;
   const emailContent = `<p>Please verify your email by clicking this link: 
-    <b>${ROOT_URL}verification/verify?e=${encrypt({ email: to })}&i=${encrypt({vid:id})}</b></p>`;
+    <b>${ROOT_URL}Verification/verify?e=${encrypt({ email: to })}&i=${encrypt({vid:id})}</b></p>`;
 
   await transporter.sendMail({
     from: `"Verification" <${SMTP_USER}>`,

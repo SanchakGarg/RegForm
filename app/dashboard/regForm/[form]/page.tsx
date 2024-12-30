@@ -3,13 +3,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
-import { eventSchema, sports } from "@/app/utils/forms/schema";
+import { eventSchema, sports, SportsGuidlines } from "@/app/utils/forms/schema";
 import RenderForm from "@/app/components/dashboard/form/DynamicForm";
 import { useSearchParams } from "next/navigation";
 import { decrypt } from "@/app/utils/encryption";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { post } from "@/app/utils/PostGetData";
-
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 const getAuthToken = (): string | null => {
   const cookies = document.cookie.split("; ");
   const authToken = cookies.find((cookie) => cookie.startsWith("authToken="));
@@ -29,7 +31,7 @@ export default function Form() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Record<string, unknown>>({});
   const [title, setTitle] = useState<string>("");
-
+  const [markdownContent, setMarkdownContent] = useState<string>("");
   const searchParams = useSearchParams();
   const eparam = searchParams.get("i") || ""
   const paramI = decrypt(eparam);
@@ -71,6 +73,24 @@ try{
     if (formId) getForms();
   }, [formId]);
 
+
+  useEffect(() => {
+    const fetchMarkdown = async () => {
+      try {
+        const response = await fetch(`/markdown/${SportsGuidlines[title]}.md`);
+        if (response.ok) {
+          const text = await response.text();
+          setMarkdownContent(text);
+        } else {
+          console.error("Markdown file not found:", `/markdown/${title}.md`);
+        }
+      } catch (error) {
+        console.error("Error fetching markdown file:", error);
+      }
+    };
+
+    if (title) fetchMarkdown();
+  }, [title]);
   return (
     <div className="w-full mt-6 pb-8 pr-5">
       {loading ? (
@@ -84,6 +104,27 @@ try{
             desktopSize="md:text-6xl"
             mobileSize="text-5xl sm:text-2xl"
           />
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button variant="link" className="text-blue-500 underline">
+                View Sport Guidelines
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Guidlines and rules for {sports[title]}</DrawerTitle>
+                <DrawerDescription></DrawerDescription>
+              </DrawerHeader>
+              <div className="px-4 py-2 max-h-[60vh] overflow-y-auto">
+                <ReactMarkdown>{markdownContent}</ReactMarkdown>
+              </div>
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button >Close</Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
           <RenderForm
             schema={eventSchema.subEvents[title].specificPages[0].fields}
             draftSchema={eventSchema.subEvents[title].specificPages[0].draft}

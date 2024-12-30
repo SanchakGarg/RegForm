@@ -29,7 +29,7 @@ export interface formMeta {
 }
 
 // ---------- Sports List ----------
-export const sports : Record<string,string> = {
+export const sports: Record<string, string> = {
     Badminton_Men: "Badminton (Men)",
     Badminton_Women: "Badminton (Women)",
     Basketball_Men: "Basketball (Men)",
@@ -96,8 +96,8 @@ export const playerMeta: formMeta = {
     email: { label: "Email", placeholder: "Email" },
     phone: { label: "Phone Number", placeholder: "Phone Number" },
     gender: { label: "Gender", placeholder: "Select Gender" },
-    category1:{label: "Category 1",placeholder:"Select Category"},
-    category2:{label: "Category 2",placeholder:"Select Category"},
+    category1: { label: "Category 1", placeholder: "Select Category" },
+    category2: { label: "Category 2", placeholder: "Select Category" },
 
 };
 
@@ -198,15 +198,15 @@ const swimmingCategories = [
     "200m Medley Relay (mixed)"
 ] as const;
 
-export const ShootingCategories = 
+export const ShootingCategories =
 
-[   "Select Category",
-     "10 Meter Air Rifle (Mixed) Individual",
-    "10 Meter Air Pistol (Mixed) Individual"
-]as const;
+    ["Select Category",
+        "10 Meter Air Rifle (Mixed) Individual",
+        "10 Meter Air Pistol (Mixed) Individual"
+    ] as const;
 
 
-export const SportsGuidlines : Record<string,string> = {
+export const SportsGuidlines: Record<string, string> = {
     Badminton_Men: "badminton(Men)",
     Badminton_Women: "badminton(Women)",
     Basketball_Men: "basketball",
@@ -331,20 +331,20 @@ export const eventSchema: EventSchema = {
                 generatePageWithPlayerFields(3, 4), // 3 to 4 players
             ],
         },
-        Chess_Mixed:{
-            eventName:sports.Chess_Mixed,
-            specificPages:[
+        Chess_Mixed: {
+            eventName: sports.Chess_Mixed,
+            specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
                         coachFields,
-                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" })}))
+                        playerFields: z.array(playerFields.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }) }))
                             .min(4, `Fill details of minimum ${4} players`)
                             .max(5, `A maximum of ${5} players are allowed`),
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional() }))
                             .min(4, `Fill details of minimum ${4} players`)
                             .max(5, `A maximum of ${5} players are allowed`),
                     }),
@@ -355,20 +355,20 @@ export const eventSchema: EventSchema = {
                 }
             ],
         },
-        Tennis_Mixed:{
-            eventName:sports.Tennis_Mixed,
-            specificPages:[
+        Tennis_Mixed: {
+            eventName: sports.Tennis_Mixed,
+            specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
                         coachFields,
-                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" })}))
+                        playerFields: z.array(playerFields.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }) }))
                             .min(5, `Fill details of minimum ${5} players`)
                             .max(9, `A maximum of ${9} players are allowed`),
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional() }))
                             .min(5, `Fill details of minimum ${5} players`)
                             .max(9, `A maximum of ${9} players are allowed`),
                     }),
@@ -379,20 +379,20 @@ export const eventSchema: EventSchema = {
                 }
             ],
         },
-        Swimming_Men:{
-            eventName:sports.Swimming_Men,
-            specificPages:[
+        Swimming_Men: {
+            eventName: sports.Swimming_Men,
+            specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
                         coachFields,
-                        playerFields: z.array(playerFields.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFields.extend({ category1: z.enum(swimmingCategories, { message: "Category 1 is required" }), category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional() }))
                             .min(2, `Fill details of minimum ${5} players`)
                             .max(8, `A maximum of ${9} players are allowed`),
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({ category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(), category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional() }))
                             .min(2, `Fill details of minimum ${5} players`)
                             .max(8, `A maximum of ${9} players are allowed`),
                     }),
@@ -403,20 +403,20 @@ export const eventSchema: EventSchema = {
                 }
             ],
         },
-        Swimming_Women:{
-            eventName:sports.Swimming_Women,
-            specificPages:[
+        Swimming_Women: {
+            eventName: sports.Swimming_Women,
+            specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
                         coachFields,
-                        playerFields: z.array(playerFields.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFields.extend({ category1: z.enum(swimmingCategories, { message: "Category 1 is required" }), category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional() }))
                             .min(2, `Fill details of minimum ${2} players`)
                             .max(8, `A maximum of ${8} players are allowed`),
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(),category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({ category1: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional(), category2: z.enum(swimmingCategories, { message: "Category 1 is required" }).optional() }))
                             .min(2, `Fill details of minimum ${2} players`)
                             .max(8, `A maximum of ${8} players are allowed`),
                     }),
@@ -427,20 +427,20 @@ export const eventSchema: EventSchema = {
                 }
             ],
         },
-        Shooting:{
-            eventName:sports.Shooting,
-            specificPages:[
+        Shooting: {
+            eventName: sports.Shooting,
+            specificPages: [
                 {
                     pageName: "Coach Details",
                     fields: z.object({
                         coachFields,
-                        playerFields: z.array(playerFields.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }),category1: z.enum(ShootingCategories, { message: "Category 1 is required" })}))
+                        playerFields: z.array(playerFields.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }), category1: z.enum(ShootingCategories, { message: "Category 1 is required" }) }))
                             .min(1, `Fill details of minimum ${1} players`)
                             .max(10, `A maximum of ${10} players are allowed`),
                     }),
                     draft: z.object({
                         coachFields,
-                        playerFields: z.array(playerFieldsDraft.extend({gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(),category1: z.enum(ShootingCategories, { message: "Category 1 is required" }).optional()}))
+                        playerFields: z.array(playerFieldsDraft.extend({ gender: z.enum(["Select Gender", "Male", "Female", "Other"], { message: "Gender is required" }).optional(), category1: z.enum(ShootingCategories, { message: "Category 1 is required" }).optional() }))
                             .min(1, `Fill details of minimum ${1} players`)
                             .max(10, `A maximum of ${10} players are allowed`),
                     }),

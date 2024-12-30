@@ -387,39 +387,47 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   });
 
 
-  const FormSelect = React.memo(({ name, options, label, placeholder }: FormSelectProps) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel className="font-bold">{label}</FormLabel>
-          <Select
-          {...field}
-            onValueChange={(value) => {
-              // If the selected value matches the placeholder, set to undefined
-              field.onChange(value === placeholder ? undefined : value);
-            }}
-            defaultValue={field.value}  // Ensure defaultValue is handled
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={placeholder} />  {/* Placeholder is now correctly handled */}
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  ));
+  const FormSelect = React.memo(({ name, options, label, placeholder }: FormSelectProps) => {
+    return (
+      <FormField
+        control={form.control}
+        name={name}
+        render={({ field }) => {
+          const [selectedValue, setSelectedValue] = useState<string | undefined>(field.value || undefined); // Initialize with field.value
+          
+          return (
+            <FormItem>
+              <FormLabel className="font-bold">{label}</FormLabel>
+              <Select
+                {...field}
+                onValueChange={(value) => {
+                  // If the selected value matches the placeholder, set to undefined
+                  field.onChange(value === placeholder ? undefined : value);
+                  setSelectedValue(value);
+                }}
+                value={selectedValue}  // Ensure value is controlled
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={placeholder} />  {/* Placeholder is now correctly handled */}
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
+      />
+    );
+  });
+  
   
 
 
@@ -570,11 +578,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
 
-
-
-
-
-
+  FormSelect.displayName = "FormSelect";
   const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset]);
 
   return (

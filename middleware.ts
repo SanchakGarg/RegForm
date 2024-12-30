@@ -9,15 +9,17 @@ type PostResponse = {
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("authToken")?.value;
 
-  // Check if the user is trying to access the SignIn page
+  // Check if the user is trying to access the SignIn, SignUp, or Verification pages
   const isSignInPage = req.nextUrl.pathname === "/SignIn";
+  const isSignUpPage = req.nextUrl.pathname === "/SignUp";
+  const isVerificationPage = req.nextUrl.pathname.startsWith("/verification");
 
   if (!token) {
     // If there's no token and the user is on a protected route, redirect to SignIn
-    if (!isSignInPage) {
+    if (!isSignInPage && !isSignUpPage && !isVerificationPage) {
       return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
     }
-    // Allow access to the SignIn page if unauthenticated
+    // Allow access to the SignIn, SignUp, or Verification page if unauthenticated
     return NextResponse.next();
   }
 
@@ -25,8 +27,8 @@ export async function middleware(req: NextRequest) {
   const isValid = await validateToken(token);
 
   if (isValid) {
-    // Redirect authenticated users from the SignIn page to the Dashboard
-    if (isSignInPage) {
+    // Redirect authenticated users from the SignIn, SignUp, or Verification page to the Dashboard
+    if (isSignInPage || isSignUpPage || isVerificationPage) {
       return NextResponse.redirect(new URL("/dashboard", req.url), { status: 302 });
     }
     // Allow access to other routes if authenticated
@@ -38,7 +40,7 @@ export async function middleware(req: NextRequest) {
 }
 
 // Token validation with inline typing
-async function  validateToken(token: string): Promise<boolean> {
+async function validateToken(token: string): Promise<boolean> {
   const response = await post<{ success: boolean }>(`${process.env.ROOT_URL}api/auth/middleware`, { tokene: token });
 
   if (response.error) {
@@ -54,7 +56,7 @@ async function  validateToken(token: string): Promise<boolean> {
   return false;
 }
 
-// Match protected routes and the SignIn page
+// Match protected routes and the SignIn, SignUp, and Verification pages
 export const config = {
-  matcher: ["/dashboard/:path*", "/SignIn"], // Add SignIn to the matcher
+  matcher: ["/dashboard/:path*", "/SignIn", "/SignUp", "/verification/:path*"], // Add SignUp and Verification to the matcher
 };

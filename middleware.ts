@@ -12,11 +12,10 @@ export async function middleware(req: NextRequest) {
   // Check if the user is trying to access the SignIn, SignUp, or Verification pages
   const isSignInPage = req.nextUrl.pathname === "/SignIn";
   const isSignUpPage = req.nextUrl.pathname === "/SignUp";
-  const isVerificationPage = req.nextUrl.pathname.startsWith("/Verification");
 
   if (!token) {
     // If there's no token and the user is on a protected route, redirect to SignIn
-    if (!isSignInPage && !isSignUpPage && !isVerificationPage) {
+    if (!isSignInPage && !isSignUpPage ) {
       return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
     }
     // Allow access to the SignIn, SignUp, or Verification page if unauthenticated
@@ -28,7 +27,7 @@ export async function middleware(req: NextRequest) {
 
   if (isValid) {
     // Redirect authenticated users from the SignIn, SignUp, or Verification page to the Dashboard
-    if (isSignInPage || isSignUpPage || isVerificationPage) {
+    if (isSignInPage || isSignUpPage ) {
       return NextResponse.redirect(new URL("/dashboard", req.url), { status: 302 });
     }
     // Allow access to other routes if authenticated
@@ -58,5 +57,5 @@ async function validateToken(token: string): Promise<boolean> {
 
 // Match protected routes and the SignIn, SignUp, and Verification pages
 export const config = {
-  matcher: ["/dashboard/:path*", "/SignIn", "/SignUp", "/Verification/:path*"], // Add SignUp and Verification to the matcher
+  matcher: ["/dashboard/:path*", "/SignIn", "/SignUp"], // Add SignUp and Verification to the matcher
 };

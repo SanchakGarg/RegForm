@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline";
 import { eventSchema, sports } from "@/app/utils/forms/schema";
@@ -30,7 +31,8 @@ export default function Form() {
   const [title, setTitle] = useState<string>("");
 
   const searchParams = useSearchParams();
-  const paramI = decrypt(searchParams.get("i") || "");
+  const eparam = searchParams.get("i") || ""
+  const paramI = decrypt(eparam);
   const formId = paramI.id;
 
   useEffect(() => {
@@ -49,7 +51,11 @@ export default function Form() {
         });
 
         if (response.data?.success && response.data?.data) {
-          typecastDatesInPlayerFields(response.data.data.fields.playerFields)
+try{
+  typecastDatesInPlayerFields(response.data.data.fields.playerFields)
+
+}catch(e){
+}
           setData(response.data.data.fields);
           setTitle(response.data.data.title);
         } else {
@@ -76,7 +82,7 @@ export default function Form() {
           <HeadingWithUnderline
             text={sports[title]}
             desktopSize="md:text-6xl"
-            mobileSize="text-3xl sm:text-2xl"
+            mobileSize="text-5xl sm:text-2xl"
           />
           <RenderForm
             schema={eventSchema.subEvents[title].specificPages[0].fields}

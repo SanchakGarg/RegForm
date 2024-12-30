@@ -89,7 +89,7 @@ export const playerFieldsDraft = z.object({
 });
 
 export const playerMeta: formMeta = {
-    title: { label: "Player" },
+    title: { label: "Player Details" },
     subtitle: { label: "Player " },
     name: { label: "Name", placeholder: "Name" },
     date: { label: "Date Of Birth", placeholder: "Pick a date" },
@@ -430,4 +430,5 @@ export const eventSchema: EventSchema = {
             ],
         },
     },
+
 };

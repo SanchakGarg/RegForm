@@ -31,7 +31,8 @@ export function encrypt(data: Record<string, any>): string {
  * @returns Decrypted object
  */
 export function decrypt(encryptedData: string): Record<string, any> {
-  const [ivHex, encryptedString] = encryptedData.split(':'); // Separate IV from encrypted text
+  try {
+    const [ivHex, encryptedString] = encryptedData.split(':'); // Separate IV from encrypted text
   const iv = Buffer.from(ivHex, 'hex');
 
   const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
@@ -40,4 +41,9 @@ export function decrypt(encryptedData: string): Record<string, any> {
   decrypted += decipher.final('utf8');
 
   return JSON.parse(decrypted);
+  }
+  catch(e)
+  {
+    return {success:false,error:e};
+  }
 }

@@ -32,19 +32,19 @@ async function sendEmail(to: string, id: string) {
     }
   });
 
-  const vlink = `${ROOT_URL}verify?token=${id}`;
+  // const vlink = `${ROOT_URL}verify?token=${id}`;
   const emailContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
     <h2 style="text-align: center; color: #ed810c;">Email Verification</h2>
     <p>Hi,</p>
-    <p>Thank you for registering. Please verify your email by clicking the button below:</p>
+    <p>Thank you for registering for Agneepath sports fest. Kindly verify your email by clicking the button below:</p>
     <div style="text-align: center; margin: 20px 0;">
       <a href="${ROOT_URL}Verification/verify?e=${encrypt({ email: to })}&i=${encrypt({ vid: id })}" 
          style="display: inline-block; background-color: #ed810c; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px;">
         Verify Email
       </a>
     </div>
-    <p>Feel free to contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> if you have any questions.</p>
+    <p>For any queries contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a></p>
     <p>Best regards,<br>Team Agneepath</p>
     <img src="cid:unique-image-cid" alt="Agneepath Logo" style="max-width: 15%; height: auto;" />
 
@@ -53,7 +53,7 @@ async function sendEmail(to: string, id: string) {
 const attachments = [
   {
     filename: "logo2.png", // Name of the image
-    path: "D:/Agneepath 6.0/regform/public/logo2.png", // Path to the image file (you can use a local file or an image URL)
+    path: `${process.env.LOGO}`, // Path to the image file (you can use a local file or an image URL)
     cid: "unique-image-cid", // The unique content ID
     encoding: "base64"
   }
@@ -61,10 +61,10 @@ const attachments = [
 
 
   await transporter.sendMail({
-    from: `"Verification" <${SMTP_USER}>`,
+    from: `"Agneepath" <${SMTP_USER}>`,
     to,
     subject: "Verify your account",
-    text: `Please verify your email using this Link: ${vlink}`,
+    // text: `Please verify your email using this Link: ${vlink}`,
     html: emailContent,attachments  });
 }
 

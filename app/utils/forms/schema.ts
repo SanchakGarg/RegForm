@@ -206,6 +206,28 @@ export const ShootingCategories =
 ]as const;
 
 
+export const SportsGuidlines : Record<string,string> = {
+    Badminton_Men: "badminton(Men)",
+    Badminton_Women: "badminton(Women)",
+    Basketball_Men: "basketball",
+    Basketball_Women: "basketball",
+    Chess_Mixed: "chess",
+    Cricket_Men: "cricket",
+    Football_Men: "football",
+    Futsal_Women: "futsal",
+    Tennis_Mixed: "tennis",
+    Volleyball_Men: "volleyball",
+    Volleyball_Women: "volleyball",
+    Table_Tennis_Men: "tabletennis",
+    Table_Tennis_Women: "tabletennis",
+    Squash_Men: "squash",
+    Squash_Women: "squash",
+    Swimming_Men: "swimming",
+    Swimming_Women: "swimming",
+    Ball_Pool_Men: "pool",
+    Snooker_Men: "snoooker",
+    Shooting: "shooting"
+} as const;
 
 
 

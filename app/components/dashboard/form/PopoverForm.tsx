@@ -255,7 +255,7 @@ const RenderPopoverForm: React.FC<{ schema: ZodObject<ZodRawShape>, meta: formMe
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {renderFormFields(schema)}
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 items-end">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (

@@ -23,7 +23,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-
 const getAuthToken = (): string | null => {
   const cookies = document.cookie.split("; ");
   const authToken = cookies.find((cookie) => cookie.startsWith("authToken="));
@@ -198,7 +197,7 @@ export default function Form() {
             desktopSize="md:text-6xl"
             mobileSize="text-5xl sm:text-2xl"
           />
-          
+
           <Drawer>
             <DrawerTrigger asChild>
               <Button variant="link" className="text-blue-500 underline">
@@ -224,11 +223,12 @@ export default function Form() {
               <DrawerFooter>
                 <DrawerClose asChild>
                   <Button>Close</Button>
+
                 </DrawerClose>
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
-          
+
           <RenderForm
             schema={eventSchema.subEvents[title].specificPages[0].fields}
             draftSchema={eventSchema.subEvents[title].specificPages[0].draft}

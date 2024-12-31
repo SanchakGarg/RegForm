@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
 
     if (userResponse.success) {
-      console.log("User data retrieved successfully:", userResponse.data);
+      // console.log("User data retrieved successfully:", userResponse.data);
       return NextResponse.json(
         {
           success: true,
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     } else {
-      console.error("Failed to retrieve user data:", userResponse.message);
+      // console.error("Failed to retrieve user data:", userResponse.message);
       return NextResponse.json(
         {
           success: false,

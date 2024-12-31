@@ -1,5 +1,6 @@
 "use client"
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -8,6 +9,7 @@ import styles from "@/app/styles/toast.module.css"
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useRef } from "react";
 import {
   Form,
   FormControl,
@@ -72,6 +74,8 @@ interface PaymentData {
 }
 
 export default function Payments() {
+  const [showInput, setShowInput] = useState(false);
+
   const [paymentData, setPaymentData] = useState<PaymentData>({
     Accommodation: { needAccommodation: false },
     submittedForms: null
@@ -81,52 +85,89 @@ export default function Payments() {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      needAccommodation: false,
-      numberOfPlayers: undefined,
-    },
+    defaultValues: paymentData.Accommodation,
   })
 
-  const [showInput, setShowInput] = useState(false)
+  // const [formReset,setFormReset] = useState(false);
 
+
+  const resetFormOnce = useRef(false);
+  
   useEffect(() => {
     const fetchPaymentData = async () => {
       try {
-        const token = getAuthToken()
+        const token = getAuthToken();
         const response = await post<{ success: boolean; data?: PaymentData }>(
           `/api/payments`,
           {
             cookies: token,
           }
-        )
+        );
         if (response.data?.success) {
-          setPaymentData(response.data.data || {
-            Accommodation: { needAccommodation: false },
-            submittedForms: null
-          })
+          setPaymentData(
+            response.data.data || {
+              Accommodation: { needAccommodation: false },
+              submittedForms: null,
+            }
+          );
+  
+          setShowInput(response.data.data?.Accommodation.needAccommodation || false);
+  
+          // Only reset the form once after data is fetched
+          if (!resetFormOnce.current) {
+            form.reset(response.data.data?.Accommodation || {});
+            resetFormOnce.current = true;
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch payment data')
+        setError(err instanceof Error ? err.message : "Failed to fetch payment data");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
+    };
+  
+    fetchPaymentData();
+  }, []);
+  
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+
+      const token = getAuthToken();
+      const response = await post<{ success: boolean; data?: PaymentData }>(
+        `/api/payments/Accommodation`,
+        {
+          cookies: token,
+          accommodationData:data
+        }
+      );
+  
+      if (!response.data?.success) {
+        return toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to save accommodation data. Please try again.",
+          className: styles["mobile-toast"],
+
+        });
+      }
+  
+      toast({
+        title: "Success",
+        description: "Data saved successfully",
+        className: styles["mobile-toast"],
+
+      });
+  
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        className: styles["mobile-toast"],
+
+      });
     }
-
-    fetchPaymentData()
-  }, [])
-
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      className: styles["mobile-toast"],
-      title: "Form Submitted",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
   }
-
   const calculateSportsTotal = () => {
     if (!paymentData?.submittedForms) return 0
     return Object.entries(paymentData.submittedForms).reduce((total, [_, sport]) => {

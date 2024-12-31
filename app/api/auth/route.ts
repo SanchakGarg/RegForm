@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       emailVerified: false,
       VerificationId: vid,
       vTimeLimit: expirationTime,
-      Accomodation:{needAccommodation:false}
+      Accommodation:{needAccommodation:false}
     });
 
     return new Response(

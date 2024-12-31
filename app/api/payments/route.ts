@@ -2,6 +2,7 @@ import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { NextRequest, NextResponse } from "next/server";
 
+
 export async function POST(req: NextRequest) {
   try {
     const email = getEmailFromToken(req);
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userResponse = await fetchUserData("email", email, ["Accomodation", "submittedForms"]);
+    const userResponse = await fetchUserData("email", email, ["Accommodation", "submittedForms"]);
 
     if (userResponse.success) {
       console.log("User data retrieved successfully:", userResponse.data);

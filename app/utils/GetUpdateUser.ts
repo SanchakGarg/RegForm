@@ -18,7 +18,7 @@ interface FetchUserSuccess {
   success: true;
   data: WithId<Document>;
 }
-  
+
 interface FetchUserError {
   success: false;
   message: string;
@@ -30,7 +30,6 @@ type FetchUserResponse = FetchUserSuccess | FetchUserError;
 /**
  * Fetch user data from database by dynamic key (email/vid) with specified fields only.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchUserData(
   queryKey: keyof User,
   queryValue: string,
@@ -97,7 +96,7 @@ export async function deleteUserData(queryKey: keyof User, queryValue: string) {
  * @param email - Identifier for the user (email).
  * @param data - Fields to insert or update.
  */
- export async function updateUserData(email: string, data: Partial<User>) {
+export async function updateUserData(email: string, data: Partial<User>) {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");
@@ -107,24 +106,16 @@ export async function deleteUserData(queryKey: keyof User, queryValue: string) {
       return createErrorResponse(400, "Email is required.");
     }
 
-    // Prepare the update operation to merge fields
-    const updateData = Object.entries(data).reduce<Record<string,any>>((acc, [key, value]) => {
-      if (typeof value === "object" && value !== null) {
-        // Use $mergeObjects for nested fields
-        acc[key] = { $mergeObjects: ["$" + key, value] };
-      } else {
-        // Use $set for primitive fields
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
+    // Prepare the update or insert operation
+    const updateData = {
+      ...data,
+      email, // Ensure email remains consistent
+    };
 
-    // Perform the update operation
+    // Upsert user: update if exists, otherwise create
     const result = await collection.updateOne(
       { email }, // Search by email
-      [{
-        $set: updateData, // Merge or set fields
-      }],
+      { $set: updateData }, // Update or set new fields
       { upsert: true } // Create if not found
     );
 

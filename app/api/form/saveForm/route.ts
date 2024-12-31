@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
-import { updateUserData } from "@/app/utils/GetUpdateUser";
+import { createErrorResponse, User } from "@/app/utils/interfaces";
 interface FormObj {
   ownerId: Object;
   fields: Object;
@@ -14,7 +14,11 @@ interface FormObj {
   updatedAt: Date;
   title: string;
 }
-
+interface UpdateResponse {
+  success: boolean;
+  message: string;
+  data?: Record<string, any>;
+}
 function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   playerFields.forEach((obj) => {
     for (const key in obj) {
@@ -24,6 +28,55 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
     }
   });
 }
+
+
+
+ export async function updateUserData(email: string, data: Partial<User>) {
+  try {
+    const { db } = await connectToDatabase();
+    const collection = db.collection("users");
+
+    // Ensure the email is provided and valid
+    if (!email) {
+      return createErrorResponse(400, "Email is required.");
+    }
+
+    // Prepare the update operation to merge fields
+    const updateData = Object.entries(data).reduce<Record<string,any>>((acc, [key, value]) => {
+      if (typeof value === "object" && value !== null) {
+        // Use $mergeObjects for nested fields
+        acc[key] = { $mergeObjects: ["$" + key, value] };
+      } else {
+        // Use $set for primitive fields
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    // Perform the update operation
+    const result = await collection.updateOne(
+      { email }, // Search by email
+      [{
+        $set: updateData, // Merge or set fields
+      }],
+      { upsert: true } // Create if not found
+    );
+
+    if (result.upsertedCount > 0) {
+      return { success: true, message: "User created successfully.", data: updateData };
+    }
+
+    if (result.modifiedCount > 0) {
+      return { success: true, message: "User updated successfully.", data: updateData };
+    }
+
+    return createErrorResponse(400, "No changes were made.");
+  } catch (error) {
+    console.error("Error updating user data:", error);
+    return createErrorResponse(500, "Failed to update user data.");
+  }
+}
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -118,7 +171,14 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    await updateUserData(userResponse.data.email, userDataToUpdate);
+    const response = await updateUserData(userResponse.data.email, userDataToUpdate);
+    const updateResponse = response as UpdateResponse;
+    if (!updateResponse.success) {
+      return NextResponse.json(
+        { success: false, message: updateResponse.message },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json(
       { success: true, message: "Form updated successfully" },

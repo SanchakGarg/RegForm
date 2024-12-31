@@ -1,12 +1,12 @@
 ## **Rules And Guidelines**
-<br> 
+ 
 
 **Team:** 
 
 1. A team may consist of a minimum of four players with an additional (optional) reserve player.
 
 2. The games will be mixed and will be played in a random seed order regardless of gender. 
-<br>
+
 
 **Format:**
 
@@ -22,7 +22,7 @@
 
 6. In the group stages, depending upon the number of entries, each team plays every other team either once or twice.  
     
-<br> 
+ 
 
 **Scoring system:** 
 
@@ -31,14 +31,14 @@ The group standings then get decided based on these total points and if need be 
 
 If there is a 2-2 tie then the players will  play a **tiebreaker blitz match**.
 
-<br> 
+ 
 
 
 **Rules:** All standard [**rules of Chess**](https://handbook.fide.com/chapter/E012023) will apply. 
 
-<br>
+
 
 **What-so-ever the circumstance is, requests pertaining to the postponement of the first round will not be entertained.**
-<br> 
+ 
 
 **_The organiser reserves the right to change these rules or make any last minute modifications depending on the number of entries._**

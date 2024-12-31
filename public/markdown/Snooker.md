@@ -5,7 +5,7 @@
   1. Each college team may consist of up to 4 participants.
 
   2. Teams must have a **minimum of 3 participants** to compete.
-<br>
+
 
 **Match Format (including Finals):**
 
@@ -15,7 +15,7 @@
      
   3. A participant is limited to competing in a maximum of 2 frames, 1 singles and 1 doubles.
      
-     <br>
+     
 **Rules:**
 
    1. Refer to the section [**“Rules of the Game of Snooker"**](https://docs.google.com/document/d/1_XHjOSSwz_v6OAwnqECA6j3DJfvINxJWHYNOjRDVPpg/edit?usp=sharing)

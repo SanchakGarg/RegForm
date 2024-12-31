@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
-
+import { updateUserData } from "@/app/utils/GetUpdateUser";
 interface FormObj {
   ownerId: Object;
   fields: Object;
@@ -14,6 +14,7 @@ interface FormObj {
   updatedAt: Date;
   title: string;
 }
+
 function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   playerFields.forEach((obj) => {
     for (const key in obj) {
@@ -24,14 +25,10 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   });
 }
 
-// Example usage
-
-
 export async function POST(req: NextRequest) {
   try {
     // Ensure the request has a JSON body
     const data = await req.json();
-    // console.log("Received data:", data);
     if (!data || Object.keys(data).length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid or empty data" },
@@ -46,7 +43,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // console.log(fields);
+
     typecastDatesInPlayerFields(fields.playerFields);
     const email = getEmailFromToken(req);
     if (!email) {
@@ -62,7 +59,6 @@ export async function POST(req: NextRequest) {
     // Fetch form data based on formId
     const form = await formCollection.findOne({ _id: new ObjectId(formId) });
     if (!form) {
-      // console.log("formNotFound");
       return NextResponse.json(
         { success: false, message: "Form not found" },
         { status: 404 }
@@ -111,6 +107,18 @@ export async function POST(req: NextRequest) {
       { _id: new ObjectId(formId) },
       { $set: updatedData }
     );
+
+    // Now, call updateUserData to update the user collection
+    const playerCount = fields.playerFields ? fields.playerFields.length : 0;
+    const userDataToUpdate = {
+      submittedForms: {
+        [form.title]: {
+          Players: playerCount,
+        },
+      },
+    };
+
+    await updateUserData(userResponse.data.email, userDataToUpdate);
 
     return NextResponse.json(
       { success: true, message: "Form updated successfully" },

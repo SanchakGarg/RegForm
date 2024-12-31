@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, BookText, LayoutDashboard, LogOut } from "lucide-react";
+import { CreditCard, BookText, LayoutDashboard, LogOut, Home } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
+  { title: "Home", url: "https://agneepath.co.in/", icon: Home, external: true }, // Added Home item
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Registration Form", url: "/dashboard/regForm", icon: BookText },
   { title: "Accommodation and Payments", url: "/dashboard/Payments", icon: CreditCard },
@@ -45,7 +46,11 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url} className="flex items-center space-x-2 text-lg font-medium">
+                    <Link
+                      href={item.url}
+                      className="flex items-center space-x-2 text-lg font-medium"
+                      target={item.external ? "_blank" : "_self"} // Open in a new tab if external
+                    >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </Link>
@@ -70,4 +75,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-

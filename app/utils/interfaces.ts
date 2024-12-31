@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface User {
   _id:Object;
   name: string;
@@ -9,6 +10,8 @@ export interface User {
   emailVerified?: boolean;
   VerificationId?: string;
   vid?: string;
+  submittedForms?:Record<string,any>;
+  Accomodation?:Record<string,any>;
 }
 
 export interface ErrorMessage {

@@ -11,7 +11,8 @@ export interface User {
   VerificationId?: string;
   vid?: string;
   submittedForms?:Record<string,any>;
-  Accomodation?:Record<string,any>;
+  Accommodation?:Record<string,any>;
+
 }
 
 export interface ErrorMessage {

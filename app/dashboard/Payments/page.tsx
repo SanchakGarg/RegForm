@@ -1,6 +1,6 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -10,6 +10,7 @@ import styles from "@/app/styles/toast.module.css"
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useRef } from "react";
 import {
   Form,
   FormControl,
@@ -48,7 +49,7 @@ const FormSchema = z
         ? data.numberOfPlayers !== undefined
         : data.numberOfPlayers === undefined,
     {
-      message: "Number Of player must not be atleast 1",
+      message: "Number of players must be at least 1",
       path: ["numberOfPlayers"],
     }
   )
@@ -62,84 +63,132 @@ const getAuthToken = (): string | null => {
   return null
 }
 
-export default function SignUpPage() {
-  const [paymentData, setPaymentData] = useState<FormData[]>([])
+interface PaymentData {
+  Accommodation: {
+    needAccommodation: boolean;
+  };
+  submittedForms: {
+    [key: string]: {
+      Players: number;
+    };
+  } | null;
+}
+
+export default function Payments() {
+  const [showInput, setShowInput] = useState(false);
+
+  const [paymentData, setPaymentData] = useState<PaymentData>({
+    Accommodation: { needAccommodation: false },
+    submittedForms: null
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      needAccommodation: false,
-      numberOfPlayers: undefined,
-    },
+    defaultValues: paymentData.Accommodation,
   })
 
-  const [showInput, setShowInput] = useState(false)
-  const [sports] = useState([
-    { name: "Football", numberOfPlayers: 4, registrationAmount: 100, accommodationPrice: 50 },
-    { name: "Basketball", numberOfPlayers: 5, registrationAmount: 120, accommodationPrice: 60 },
-    { name: "Tennis", numberOfPlayers: 2, registrationAmount: 80, accommodationPrice: 40 },
-  ])
+  // const [formReset,setFormReset] = useState(false);
 
+
+  const resetFormOnce = useRef(false);
+  
   useEffect(() => {
     const fetchPaymentData = async () => {
       try {
-        const token = getAuthToken()
-        const response = await post<{ success: boolean; data?: Record<string,any> }>(
+        const token = getAuthToken();
+        const response = await post<{ success: boolean; data?: PaymentData }>(
+
           `/api/payments`,
           {
             cookies: token,
           }
-        )
-        console.log(response);
-        if (response.data?.success ) {
-          // setPaymentData(response?.data)
-          console.log(response.data?.data);
-          setPaymentData(response.data?.data?.submittedForms)
-
+        );
+        if (response.data?.success) {
+          setPaymentData(
+            response.data.data || {
+              Accommodation: { needAccommodation: false },
+              submittedForms: null,
+            }
+          );
+  
+          setShowInput(response.data.data?.Accommodation.needAccommodation || false);
+  
+          // Only reset the form once after data is fetched
+          if (!resetFormOnce.current) {
+            form.reset(response.data.data?.Accommodation || {});
+            resetFormOnce.current = true;
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch payment data')
+        setError(err instanceof Error ? err.message : "Failed to fetch payment data");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
+    };
+  
+    fetchPaymentData();
+  }, []);
+  
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+
+      const token = getAuthToken();
+      const response = await post<{ success: boolean; data?: PaymentData }>(
+        `/api/payments/Accommodation`,
+        {
+          cookies: token,
+          accommodationData:data
+        }
+      );
+  
+      if (!response.data?.success) {
+        return toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to save accommodation data. Please try again.",
+          className: styles["mobile-toast"],
+
+        });
+      }
+  
+      toast({
+        title: "Success",
+        description: "Data saved successfully",
+        className: styles["mobile-toast"],
+
+      });
+  
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        className: styles["mobile-toast"],
+
+      });
     }
-
-    fetchPaymentData()
-  }, []) // Empty dependency array means this runs once on mount
-
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      className: styles["mobile-toast"],
-      title: "Form Submitted",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
   }
-
   const calculateSportsTotal = () => {
-    return sports.reduce((total, sport) => total + sport.registrationAmount, 0)
+    if (!paymentData?.submittedForms) return 0
+    return Object.entries(paymentData.submittedForms).reduce((total, [_, sport]) => {
+      return total + (sport.Players * 800)
+    }, 0)
+
   }
 
   const calculateAccommodationTotal = () => {
     if (!form.getValues("needAccommodation")) return 0
     const players = form.getValues("numberOfPlayers") || 0
-    return sports.reduce((total, sport) => total + sport.accommodationPrice, 0) * players
+    return players * 500
+
   }
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>
-  }
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
 
   return (
     <div className="h-screen p-6">
@@ -149,7 +198,7 @@ export default function SignUpPage() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
-        {/* Sports Registration Table */}
+
         <Card>
           <CardHeader>
             <HeadingWithUnderline
@@ -160,33 +209,38 @@ export default function SignUpPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Sport</TableHead>
-                    <TableHead className="text-right font-bold">Players</TableHead>
-                    <TableHead className="text-right font-bold">Registration Fee</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sports.map((sport, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{sport.name}</TableCell>
-                      <TableCell className="text-right">{sport.numberOfPlayers}</TableCell>
-                      <TableCell className="text-right">₹{sport.registrationAmount}</TableCell>
+              {!paymentData?.submittedForms || Object.keys(paymentData.submittedForms).length === 0 ? (
+                <div className="text-center py-4 text-gray-500">Not registered for any sports</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold">Sport</TableHead>
+                      <TableHead className="text-right font-bold">Players</TableHead>
+                      <TableHead className="text-right font-bold">Registration Fee</TableHead>
                     </TableRow>
-                  ))}
-                  <TableRow className="bg-muted/50">
-                    <TableCell colSpan={2} className="font-bold">Total Registration Fee</TableCell>
-                    <TableCell className="text-right font-bold">₹{calculateSportsTotal()}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(paymentData.submittedForms).map(([sport, data]) => (
+                      <TableRow key={sport}>
+                        <TableCell className="font-medium">{sport}</TableCell>
+                        <TableCell className="text-right">{data.Players}</TableCell>
+                        <TableCell className="text-right">₹{data.Players * 800}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={2} className="font-bold">Total Registration Fee</TableCell>
+                      <TableCell className="text-right font-bold">₹{calculateSportsTotal()}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              )}
+
             </div>
           </CardContent>
         </Card>
 
-        {/* Accommodation Section */}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Accommodation Details</CardTitle>
@@ -255,7 +309,7 @@ export default function SignUpPage() {
           </CardContent>
         </Card>
 
-        {/* Total Amount Section */}
+
         <Card className="bg-primary/5">
           <CardContent className="p-6">
             <div className="flex justify-between items-center">

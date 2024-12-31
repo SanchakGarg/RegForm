@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userResponse = await fetchUserData("email", email, ["Accomodation", "submittedForms"]);
+    const userResponse = await fetchUserData("email", email, ["Accommodation", "submittedForms"]);
+
 
     if (userResponse.success) {
       console.log("User data retrieved successfully:", userResponse.data);

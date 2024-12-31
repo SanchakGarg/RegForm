@@ -30,6 +30,7 @@ type FetchUserResponse = FetchUserSuccess | FetchUserError;
 /**
  * Fetch user data from database by dynamic key (email/vid) with specified fields only.
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchUserData(
   queryKey: keyof User,
   queryValue: string,

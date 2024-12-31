@@ -30,7 +30,7 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   });
 }
 
-async function updateUserData(email: string, data: Partial<User>) {
+ async function updateUserData(email: string, data: Partial<User>) {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");

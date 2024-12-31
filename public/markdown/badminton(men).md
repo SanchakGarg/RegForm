@@ -3,7 +3,7 @@
 **Competition:**
 
 *    League/Knockout
- <br>
+ 
 
 **Participation Cap:**
 
@@ -13,7 +13,7 @@
    
 3. A participant can play a singles match and a doubles match, but not 2 singles or 2 doubles. 
 
-    <br>
+    
 **Order of games:**
 
   1. All matches are **5 sets of 21-point games.**
@@ -23,13 +23,13 @@
   3. The moment a team obtains 3 wins, the result of the tie is declared in their favour.
     
   4. Sequence of Games:
-     <br>
+     
              a. Singles 
-            <br> b. Doubles
-           <br>  c. Singles
-           <br>  d. Doubles
-           <br>  e. Singles
-<br>
+             b. Doubles
+             c. Singles
+             d. Doubles
+             e. Singles
+
 
 **General Rules:**
 
@@ -40,6 +40,6 @@
    3. Only **non-marking shoes** are allowed on the court. 
     
    4. The decision of the referee/umpire will be final.  
-<br>
+
 
 ### **All basic Badminton rules will apply in accordance to** [**BWF guidelines.**](https://system.bwfbadminton.com/documents/folder_1_81/Regulations/Simplified-Rules/Simplified%20Rules%20of%20Badminton%20-%20Dec%202015.pdf)

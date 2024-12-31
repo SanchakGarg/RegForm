@@ -1,12 +1,12 @@
 ## **Rules And Guidelines**
-<br> 
+ 
 
 **Format:**
 
 1.  Teams will consist of 5 players- 5 on the court and the **maximum number of team players is 12**. 
 
 2.  All matches will be 5v5 and full court, with submissions only allowed on a dead ball. 
-  <br>  
+    
 
 **Rules:**
 

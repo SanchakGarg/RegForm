@@ -86,7 +86,7 @@ export default function Payments() {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: paymentData.Accommodation,
+    defaultValues: {needAccommodation: false,numberOfPlayers:undefined},
   })
 
   // const [formReset,setFormReset] = useState(false);
@@ -117,6 +117,7 @@ export default function Payments() {
   
           // Only reset the form once after data is fetched
           if (!resetFormOnce.current) {
+            form.reset({needAccommodation: false,numberOfPlayers:undefined});
             form.reset(response.data.data?.Accommodation || {});
             resetFormOnce.current = true;
           }
@@ -286,7 +287,7 @@ export default function Payments() {
                             value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value ? parseInt(e.target.value) : undefined
+                                e.target.value ? parseInt(e.target.value) : 0
                               )
                             }
                           />

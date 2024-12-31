@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -98,6 +99,7 @@ export default function Payments() {
       try {
         const token = getAuthToken();
         const response = await post<{ success: boolean; data?: PaymentData }>(
+
           `/api/payments`,
           {
             cookies: token,
@@ -173,12 +175,14 @@ export default function Payments() {
     return Object.entries(paymentData.submittedForms).reduce((total, [_, sport]) => {
       return total + (sport.Players * 800)
     }, 0)
+
   }
 
   const calculateAccommodationTotal = () => {
     if (!form.getValues("needAccommodation")) return 0
     const players = form.getValues("numberOfPlayers") || 0
     return players * 500
+
   }
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
@@ -194,6 +198,7 @@ export default function Payments() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
+
         <Card>
           <CardHeader>
             <HeadingWithUnderline
@@ -230,9 +235,11 @@ export default function Payments() {
                   </TableBody>
                 </Table>
               )}
+
             </div>
           </CardContent>
         </Card>
+
 
         <Card>
           <CardHeader>
@@ -301,6 +308,7 @@ export default function Payments() {
             </Form>
           </CardContent>
         </Card>
+
 
         <Card className="bg-primary/5">
           <CardContent className="p-6">

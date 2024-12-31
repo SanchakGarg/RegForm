@@ -19,6 +19,7 @@ interface UpdateResponse {
   message: string;
   data?: Record<string, any>;
 }
+
 function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   playerFields.forEach((obj) => {
     for (const key in obj) {
@@ -28,8 +29,6 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
     }
   });
 }
-
-
 
  export async function updateUserData(email: string, data: Partial<User>) {
   try {
@@ -76,7 +75,6 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
     return createErrorResponse(500, "Failed to update user data.");
   }
 }
-
 
 export async function POST(req: NextRequest) {
   try {
@@ -179,6 +177,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
 
     return NextResponse.json(
       { success: true, message: "Form updated successfully" },

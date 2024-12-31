@@ -12,6 +12,7 @@ export interface User {
   vid?: string;
   submittedForms?:Record<string,any>;
   Accommodation?:Record<string,any>;
+
 }
 
 export interface ErrorMessage {

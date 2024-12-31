@@ -1,11 +1,11 @@
 ## **Rules And Guidelines**
-<br> 
+ 
 
 **Format:**
 
 1.  Direct knockout format
    
-  <br>
+  
   
   **Match Rules:**
 
@@ -85,15 +85,15 @@
     
 
   10.  **Modes of dismissal**
-    <br>   a. Bowled
-    <br>   b. Caught Out
-      <br> c. Run Out
-      <br> d. Hit Wicket
-     <br>  e. Hit the ball twice deliberately 
-    <br>   f. Stumped
-     <br>  g. Obstructing the field deliberately 
-    <br>   h. Timed Out
-<br>   i.The new batsman must be at the crease within 2 minutes of the previous batsman being 
+       a. Bowled
+       b. Caught Out
+       c. Run Out
+       d. Hit Wicket
+       e. Hit the ball twice deliberately 
+       f. Stumped
+       g. Obstructing the field deliberately 
+       h. Timed Out
+   i.The new batsman must be at the crease within 2 minutes of the previous batsman being 
           dismissed.
 
     

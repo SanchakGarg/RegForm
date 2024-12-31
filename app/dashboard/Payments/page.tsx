@@ -261,7 +261,8 @@ export default function Payments() {
                             field.onChange(isChecked)
                             setShowInput(isChecked)
                             if (!isChecked) {
-                              form.setValue("numberOfPlayers", undefined)
+                              form.setValue("numberOfPlayers", undefined);
+                              form.reset({ needAccommodation: false})
                             }
                           }}
                         />

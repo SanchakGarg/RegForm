@@ -1,5 +1,5 @@
 ## **Rules And Guidelines**
-<br>
+
 
 **Categories** 
 
@@ -24,7 +24,7 @@
         
   4. **Disputes**: Any disputes will be resolved by the Range Officer, whose decision is final.
 
-<br>
+
 
 **EVENT**
 

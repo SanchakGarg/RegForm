@@ -225,7 +225,7 @@ export const SportsGuidlines: Record<string, string> = {
     Swimming_Men: "swimming",
     Swimming_Women: "swimming",
     Ball_Pool_Men: "pool",
-    Snooker_Men: "snoooker",
+    Snooker_Men: "snooker",
     Shooting: "shooting"
 } as const;
 

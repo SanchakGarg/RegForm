@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import styles from "@/app/styles/toast.module.css"
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
+import { post } from "@/app/utils/PostGetData"
 
 const FormSchema = z
   .object({
@@ -50,7 +51,20 @@ const FormSchema = z
     }
   )
 
+const getAuthToken = (): string | null => {
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split("; ")
+    const authToken = cookies.find((cookie) => cookie.startsWith("authToken="))
+    return authToken ? authToken.split("=")[1] : null
+  }
+  return null
+}
+
 export default function SignUpPage() {
+  const [paymentData, setPaymentData] = useState<FormData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -60,11 +74,38 @@ export default function SignUpPage() {
   })
 
   const [showInput, setShowInput] = useState(false)
-  const [sports, setSports] = useState([
+  const [sports] = useState([
     { name: "Football", numberOfPlayers: 4, registrationAmount: 100, accommodationPrice: 50 },
     { name: "Basketball", numberOfPlayers: 5, registrationAmount: 120, accommodationPrice: 60 },
     { name: "Tennis", numberOfPlayers: 2, registrationAmount: 80, accommodationPrice: 40 },
   ])
+
+  useEffect(() => {
+    const fetchPaymentData = async () => {
+      try {
+        const token = getAuthToken()
+        const response = await post<{ success: boolean; data?: Record<string,any> }>(
+          `/api/payments`,
+          {
+            cookies: token,
+          }
+        )
+        console.log(response);
+        if (response.data?.success ) {
+          // setPaymentData(response?.data)
+          console.log(response.data?.data);
+          setPaymentData(response.data?.data?.submittedForms)
+
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch payment data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPaymentData()
+  }, []) // Empty dependency array means this runs once on mount
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     toast({
@@ -90,6 +131,14 @@ export default function SignUpPage() {
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>
+  }
+
   return (
     <div className="h-screen p-6">
       <HeadingWithUnderline
@@ -97,7 +146,7 @@ export default function SignUpPage() {
         desktopSize="md:text-6xl"
         mobileSize="text-3xl sm:text-2xl"
       />
- <div className="mt-10 space-y-8 pb-10">
+      <div className="mt-10 space-y-8 pb-10">
         {/* Sports Registration Table */}
         <Card>
           <CardHeader>

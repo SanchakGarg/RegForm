@@ -9,6 +9,8 @@ export interface User {
   emailVerified?: boolean;
   VerificationId?: string;
   vid?: string;
+  submittedForms?:Record<string,any>;
+  Accomodation?:Record<string,any>;
 }
 
 export interface ErrorMessage {

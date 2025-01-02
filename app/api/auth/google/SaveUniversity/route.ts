@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getEmailFromToken } from "@/app/utils/forms/getEmail"; // Utility to extract email from JWT
-import { fetchUserData, updateUserData } from "@/app/utils/GetUpdateUser"; // Fetch and update user data
-
 export async function POST(req: NextRequest) {
     try {
         // Step 1: Extract the token from the request cookies

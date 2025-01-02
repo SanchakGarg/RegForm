@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import styles from '@/app/styles/spinner.module.css';
 import { post } from "@/app/utils/PostGetData";
-import { encrypt } from "@/app/utils/encryption";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 interface FormData {
     universityName: string;
 }

@@ -100,6 +100,9 @@ export default function LoginPage() {
         theme="outline"
         logo_alignment="center"
         text="signin_with"
+        containerProps={{
+          className: "w-full py-3 bg-white rounded-full shadow-md hover:shadow-lg text-lg font-semibold",
+        }}
       />
     </div>
   );

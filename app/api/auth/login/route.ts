@@ -2,23 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { compareHash } from "@/app/utils/hashing";
-import {  encrypt } from "@/app/utils/encryption";
+import { encrypt } from "@/app/utils/encryption";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-256-bit-secret";
 
 export async function POST(req: NextRequest) {
   try {
-
-    const{emaile,passworde} = await req.json();
+    const { emaile, passworde } = await req.json();
     const email = emaile.toLowerCase();
     const password = passworde;
+
     // Validate inputs
     if (!email || !password) {
       return NextResponse.json({ success: false, message: "Missing credentials" }, { status: 400 });
     }
-    const emailverif = await fetchUserData('email',email, ['emailVerified']);
-    if(emailverif.success && emailverif.data.emailVerified == false){
-      return NextResponse.json({ success: true, message: "Missing credentials", emailverif:emailverif.data.emailVerified }, { status: 200 });
+
+    // Check if email is verified
+    const emailverif = await fetchUserData('email', email, ['emailVerified']);
+    if (emailverif.success && emailverif.data.emailVerified == false) {
+      return NextResponse.json({
+        success: false,
+        message: "Email is not verified. Please verify your email before logging in."
+      }, { status: 403 });
     }
 
     // Fetch user data
@@ -29,6 +34,14 @@ export async function POST(req: NextRequest) {
 
     const user = result.data;
 
+    // Check if the user is logging in with a Google account (no password set)
+    if (!user.password) {
+      return NextResponse.json({
+        success: false,
+        message: "This account is a Google account. Please use Google authentication to log in.",
+      }, { status: 401 });
+    }
+
     // Compare hashed password
     const isValidPassword = await compareHash(password, user.password);
     if (!isValidPassword) {
@@ -36,11 +49,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate JWT
-    const payload = { email: user.email};
+    const payload = { email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "5d" });
 
     // Encrypt token (optional)
-    const encryptedToken = encrypt({jwt:token});
+    const encryptedToken = encrypt({ jwt: token });
 
     return NextResponse.json({ success: true, token: encryptedToken });
   } catch (error) {

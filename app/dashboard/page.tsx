@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Users, Medal, AlertCircle } from 'lucide-react';
+import { Trophy, Users, Medal } from 'lucide-react';
 import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
+/* eslint-disable react/no-unescaped-entities */
 
 interface SubmittedForm {
   Players: {

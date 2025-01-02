@@ -1,6 +1,9 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { Medal } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -218,53 +221,65 @@ export default function Payments() {
 
 
   async function handleAddPayment(data: z.infer<typeof AddPaymentSchema>) {
-    console.log(data);
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-    // try {
-    //   const token = getAuthToken()
-    //   const formData = new FormData()
-    //   formData.append("amount", data.amount.toString())
-    //   formData.append("file", data.file)
-    //   formData.append("message", data.message || "")
-
-    //   const response = await post<{ success: boolean }>(`/api/payments/add`, {
-    //     cookies: token,
-    //     body: formData,
-    //   })
-
-    //   if (!response.data?.success) {
-    //     return toast({
-    //       variant: "destructive",
-    //       title: "Error",
-    //       description: "Failed to add payment. Please try again.",
-    //       className: styles["mobile-toast"],
-    //     })
-    //   }
-
-    //   toast({
-    //     title: "Success",
-    //     description: "Payment added successfully",
-    //     className: styles["mobile-toast"],
-    //   })
-
-    //   formAddPayment.reset()
-    // } catch (error) {
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Error",
-    //     description: error instanceof Error ? error.message : "An unexpected error occurred",
-    //     className: styles["mobile-toast"],
-    //   })
-    // }
+    try {
+      // Prepare form data
+      const formData = new FormData();
+      if (data.file) {
+        formData.append("file", data.file); // Append the selected file
+      }
+      formData.append("amount", data.amount.toString()); // Append the amount
+      if (data.message) {
+        formData.append("message", data.message); // Append optional remarks
+      }
+  
+      // Fetch token for authentication
+      const token = getAuthToken();
+      if (!token) {
+        return toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Authentication token missing. Please log in.",
+          className: styles["mobile-toast"],
+        });
+      }
+  
+      // Make the API request
+      const response = await fetch(`/api/payments/add`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // Pass the token in headers
+        },
+        body: formData, // Send formData directly
+      });
+  
+      const result = await response.json();
+  
+      // Handle response
+      if (response.ok && result.success) {
+        toast({
+          title: "Success",
+          description: "Payment added successfully",
+          className: styles["mobile-toast"],
+        });
+        formAddPayment.reset(); // Reset the form after success
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to add payment. Please try again.",
+          className: styles["mobile-toast"],
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        className: styles["mobile-toast"],
+      });
+    }
   }
-
+  
 
 
   const calculateSportsTotal = () => {

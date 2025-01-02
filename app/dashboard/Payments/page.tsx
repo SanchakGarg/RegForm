@@ -1,7 +1,10 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react-hooks/exhaustive-deps */
 
+import { Medal } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -11,6 +14,17 @@ import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRef } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import {
   Form,
   FormControl,
@@ -31,6 +45,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import { post } from "@/app/utils/PostGetData"
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+    <Medal className="w-16 h-16 text-gray-400 mb-4" />
+    <h3 className="text-xl font-bold text-gray-700 mb-2">No Sports Registered</h3>
+    <p className="text-gray-500 text-center max-w-md">
+      You haven't registered for any sports yet. Register for a sport to start your athletic journey!
+    </p>
+  </div>
+);
+
 
 const FormSchema = z
   .object({
@@ -53,6 +77,24 @@ const FormSchema = z
       path: ["numberOfPlayers"],
     }
   )
+
+const AddPaymentSchema = z.object({
+  amount: z
+    .number({
+      required_error: "Amount is required",
+      invalid_type_error: "Amount must be a number",
+    })
+    .positive("Amount must be positive"),
+  file: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: "Please select a valid file",
+    }),
+  message: z.string().optional(),
+});
+
+
+
 
 const getAuthToken = (): string | null => {
   if (typeof document !== 'undefined') {
@@ -86,14 +128,19 @@ export default function Payments() {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: paymentData.Accommodation,
+    defaultValues: { needAccommodation: false, numberOfPlayers: undefined },
+  })
+
+  const formAddPayment = useForm<z.infer<typeof AddPaymentSchema>>({
+    resolver: zodResolver(AddPaymentSchema),
+    defaultValues: { amount: undefined, file: undefined, message: "" },
   })
 
   // const [formReset,setFormReset] = useState(false);
 
 
   const resetFormOnce = useRef(false);
-  
+
   useEffect(() => {
     const fetchPaymentData = async () => {
       try {
@@ -112,11 +159,12 @@ export default function Payments() {
               submittedForms: null,
             }
           );
-  
+
           setShowInput(response.data.data?.Accommodation.needAccommodation || false);
-  
+
           // Only reset the form once after data is fetched
           if (!resetFormOnce.current) {
+            form.reset({ needAccommodation: false, numberOfPlayers: undefined });
             form.reset(response.data.data?.Accommodation || {});
             resetFormOnce.current = true;
           }
@@ -127,10 +175,10 @@ export default function Payments() {
         setIsLoading(false);
       }
     };
-  
+
     fetchPaymentData();
   }, []);
-  
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
 
@@ -139,10 +187,10 @@ export default function Payments() {
         `/api/payments/Accommodation`,
         {
           cookies: token,
-          accommodationData:data
+          accommodationData: data
         }
       );
-  
+
       if (!response.data?.success) {
         return toast({
           variant: "destructive",
@@ -152,14 +200,14 @@ export default function Payments() {
 
         });
       }
-  
+
       toast({
         title: "Success",
         description: "Data saved successfully",
         className: styles["mobile-toast"],
 
       });
-  
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -170,6 +218,70 @@ export default function Payments() {
       });
     }
   }
+
+
+  async function handleAddPayment(data: z.infer<typeof AddPaymentSchema>) {
+    try {
+      // Prepare form data
+      const formData = new FormData();
+      if (data.file) {
+        formData.append("file", data.file); // Append the selected file
+      }
+      formData.append("amount", data.amount.toString()); // Append the amount
+      if (data.message) {
+        formData.append("message", data.message); // Append optional remarks
+      }
+  
+      // Fetch token for authentication
+      const token = getAuthToken();
+      if (!token) {
+        return toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Authentication token missing. Please log in.",
+          className: styles["mobile-toast"],
+        });
+      }
+  
+      // Make the API request
+      const response = await fetch(`/api/payments/add`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // Pass the token in headers
+        },
+        body: formData, // Send formData directly
+      });
+  
+      const result = await response.json();
+  
+      // Handle response
+      if (response.ok && result.success) {
+        toast({
+          title: "Success",
+          description: "Payment added successfully",
+          className: styles["mobile-toast"],
+        });
+        formAddPayment.reset(); // Reset the form after success
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to add payment. Please try again.",
+          className: styles["mobile-toast"],
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        className: styles["mobile-toast"],
+      });
+    }
+  }
+  
+
+
   const calculateSportsTotal = () => {
     if (!paymentData?.submittedForms) return 0
     return Object.entries(paymentData.submittedForms).reduce((total, [_, sport]) => {
@@ -198,6 +310,87 @@ export default function Payments() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button>Add Payment</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Add Payment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Enter payment details below.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Form {...formAddPayment}>
+              <form onSubmit={formAddPayment.handleSubmit(handleAddPayment)} className="space-y-4">
+                {/* Amount Field */}
+                <FormField
+                  control={formAddPayment.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">Amount</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Enter amount"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* File Input Field */}
+                <FormField
+                  control={formAddPayment.control}
+                  name="file"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">Upload Proof of Payment</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            field.onChange(file || null); // Pass the file or null to the field
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Remarks Field */}
+                <FormField
+                  control={formAddPayment.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">Remarks (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Add remarks (if any)"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {/* Submit Button */}
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <Button type="submit">Submit</Button>
+                </AlertDialogFooter>
+              </form>
+            </Form>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         <Card>
           <CardHeader>
@@ -210,7 +403,7 @@ export default function Payments() {
           <CardContent>
             <div className="overflow-x-auto">
               {!paymentData?.submittedForms || Object.keys(paymentData.submittedForms).length === 0 ? (
-                <div className="text-center py-4 text-gray-500">Not registered for any sports</div>
+                <EmptyState />
               ) : (
                 <Table>
                   <TableHeader>
@@ -262,7 +455,7 @@ export default function Payments() {
                             setShowInput(isChecked)
                             if (!isChecked) {
                               form.setValue("numberOfPlayers", undefined);
-                              form.reset({ needAccommodation: false})
+                              form.reset({ needAccommodation: false })
                             }
                           }}
                         />
@@ -286,7 +479,7 @@ export default function Payments() {
                             value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value ? parseInt(e.target.value) : undefined
+                                e.target.value ? parseInt(e.target.value) : 0
                               )
                             }
                           />

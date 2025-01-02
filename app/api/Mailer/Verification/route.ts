@@ -64,8 +64,12 @@ const attachments = [
     from: `"Agneepath" <${SMTP_USER}>`,
     to,
     subject: "Verify your account",
+    headers: {
+      "X-Gm-NoSave": "1", // Custom header to prevent saving in Sent folder
+    },
     // text: `Please verify your email using this Link: ${vlink}`,
     html: emailContent,attachments  });
+    
 }
 
 export async function POST(req: Request) {

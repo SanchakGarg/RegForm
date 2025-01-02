@@ -1,7 +1,9 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
 
 import { useEffect, useState } from "react"
+import { Medal } from 'lucide-react';
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import RenderPopoverForm from "@/app/components/dashboard/form/PopoverForm"
 import { eventSchema, sports } from "@/app/utils/forms/schema"
@@ -11,7 +13,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { encrypt } from "@/app/utils/encryption"
-
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+    <Medal className="w-16 h-16 text-gray-400 mb-4" />
+    <h3 className="text-xl font-bold text-gray-700 mb-2">No Sports Registered</h3>
+    <p className="text-gray-500 text-center max-w-md">
+      You haven't registered for any sports yet. Click on Select sport to start your athletic journey!
+    </p>
+  </div>
+);
 export type FormData = {
   _id: string;
   title: string;
@@ -190,9 +200,7 @@ export default function RegForm() {
             <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : data.length === 0 ? (
-          <div className="h-64 flex items-center justify-center text-center text-gray-500">
-            No forms filled.
-          </div>
+          <EmptyState />
         ) : (
           <DataTable columns={columns} data={data} />
         )}

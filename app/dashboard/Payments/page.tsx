@@ -301,8 +301,9 @@ export default function Payments() {
         });
       }
   
-      // Make the API request
+
       const response = await fetch(`/api/payments/upload`, {
+
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`, // Pass the token in headers

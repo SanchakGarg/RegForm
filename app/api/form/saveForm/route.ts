@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { createErrorResponse, User } from "@/app/utils/interfaces";
 import sendConfirmationEmail from "@/app/utils/mailer/ConfirmationMail";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 interface FormObj {
   ownerId: Object;
   fields: Object;

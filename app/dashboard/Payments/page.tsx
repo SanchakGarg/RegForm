@@ -1,5 +1,4 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -22,11 +21,9 @@ import {
 } from "@/components/ui/popover"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -592,7 +589,9 @@ export default function Payments() {
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) return <div className="flex items-center justify-center h-64">
+  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+</div>
   if (error) return <div>Error: {error}</div>
 
   return (

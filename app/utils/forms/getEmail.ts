@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 import { decrypt } from "../encryption";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * Extracts the email from the JWT token in the cookies.

@@ -71,7 +71,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       // Signal that reset is complete
       setHasReset(!hasReset);
     }
-  }, [form, defaultvalues]);
+  }, [form, defaultvalues,hasReset]);
    const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
       setArrayFieldCounts((prev) => ({
@@ -580,7 +580,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   FormSelect.displayName = "FormSelect";
-  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset]);
+  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset,renderFormFields]);
 
   return (
     <Form {...form}>

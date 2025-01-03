@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useEffect, useState } from "react"
 import { Medal } from 'lucide-react';

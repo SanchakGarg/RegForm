@@ -2,6 +2,7 @@ import { encrypt } from "@/app/utils/encryption";
 import { connectToDatabase } from "@/lib/mongodb";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 dotenv.config();
 

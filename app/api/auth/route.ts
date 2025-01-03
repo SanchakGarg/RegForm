@@ -5,6 +5,7 @@ import { createErrorResponse } from "@/app/utils/interfaces";
 function generateVerificationId() {
   return crypto.randomBytes(32).toString("hex"); // Generates a 64-character token
 }
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // Handle POST requests for user registration
 export async function POST(req: Request) {

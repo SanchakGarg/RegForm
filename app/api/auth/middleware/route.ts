@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { decrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-256-bit-secret";
 

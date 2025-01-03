@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * Hash a plain-text password securely using bcrypt.

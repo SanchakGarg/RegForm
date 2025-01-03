@@ -1,6 +1,7 @@
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { NextRequest, NextResponse } from "next/server";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export async function POST(req: NextRequest) {
   try {

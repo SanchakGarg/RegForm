@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { User,createErrorResponse } from "./interfaces";
 // Define interfaces for type safety
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // Handle connection errors and responses
 

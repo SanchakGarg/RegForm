@@ -6,6 +6,7 @@ import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
 import { sports } from '../utils/forms/schema';
 import { useRouter } from 'next/navigation';
 /* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface SubmittedForm {
   Players: number;

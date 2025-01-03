@@ -9,7 +9,7 @@ import { Login } from "../../components/authentication/Login";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default function LoginPage() {
-  const [tabValue, setTabValue] = useState("SignUp");
+  const [tabValue, setTabValue] = useState("SignIn");
   const router = useRouter();
 
   const handleGoogleSuccess = (response: any) => {
@@ -100,6 +100,7 @@ export default function LoginPage() {
         theme="outline"
         logo_alignment="center"
         text="signin_with"
+        size="large"
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Users, Medal } from 'lucide-react';
 import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
 import { sports } from '../utils/forms/schema';
+import { useRouter } from 'next/navigation';
 /* eslint-disable react/no-unescaped-entities */
 
 interface SubmittedForm {
@@ -84,6 +85,7 @@ const LoadingState = () => (
 );
 
 export default function Dashboard() {
+  const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,11 @@ export default function Dashboard() {
           console.error('Dashboard sync failed:', data.error);
         } else {
           setUserData(data.data);
+          // Check if universityName is empty and redirect
+          if (!data.data.universityName || data.data.universityName.length === 0) {
+            router.push('/enter-institution-name'); // Replace with your desired redirect path
+            return;
+          }
         }
       } catch (err) {
         console.error('Error syncing dashboard:', err);
@@ -120,7 +127,7 @@ export default function Dashboard() {
     };
 
     syncDashboard();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

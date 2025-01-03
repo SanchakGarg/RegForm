@@ -206,7 +206,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
         }
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      // console.error("Submission error:", error);
 
       // Display error toast for unexpected errors
       toast({

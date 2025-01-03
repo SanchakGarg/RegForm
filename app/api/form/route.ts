@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in API handler:", error);
+    // console.error("Error in API handler:", error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

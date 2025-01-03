@@ -21,7 +21,7 @@ export async function post<T>(
   
       return { data, error: null };
     } catch (error) {
-      console.error("Error during POST request:", error);
+      // console.error("Error during POST request:", error);
       return { data: null, error };
     }
   }
@@ -48,7 +48,7 @@ export async function post<T>(
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error during GET request:", error);
+    // console.error("Error during GET request:", error);
     return { data: null, error };
   }
 }

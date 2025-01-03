@@ -105,11 +105,11 @@ export default function Dashboard() {
 
         const data = await response.json();
         
-        console.log('Dashboard sync response:', data);
+        // console.log('Dashboard sync response:', data);
 
         if (!data.success) {
           setError(data.error?.message || 'Failed to sync dashboard');
-          console.error('Dashboard sync failed:', data.error);
+          // console.error('Dashboard sync failed:', data.error);
         } else {
           setUserData(data.data);
           // Check if universityName is empty and redirect
@@ -119,7 +119,7 @@ export default function Dashboard() {
           }
         }
       } catch (err) {
-        console.error('Error syncing dashboard:', err);
+        // console.error('Error syncing dashboard:', err);
         setError('Failed to connect to the server');
       } finally {
         setLoading(false);

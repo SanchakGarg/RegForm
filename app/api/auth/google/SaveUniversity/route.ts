@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
             });
         }
     } catch (error) {
-        console.error("Error in saving university name:", error);
+        // console.error("Error in saving university name:", error);
         return NextResponse.json(
             { success: false, message: "Internal server error." },
             { status: 500 }

@@ -79,7 +79,7 @@ async function updateUserData(email: string, data: Partial<User>) {
     // Only return error if no document was found/matched at all
     return createErrorResponse(404, "User not found.");
   } catch (error) {
-    console.error("Error updating user data:", error);
+    // console.error("Error updating user data:", error);
     return createErrorResponse(500, "Failed to update user data.");
   }
 }
@@ -181,7 +181,7 @@ if (!isDraft) {
     
     await sendConfirmationEmail(emailFormData);
   } catch (error) {
-    console.error("Failed to send confirmation email:", error);
+    // console.error("Failed to send confirmation email:", error);
     // Continue with the response even if email fails
   }
 }
@@ -212,7 +212,7 @@ if (!isDraft) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in API handler:", error);
+    // console.error("Error in API handler:", error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

@@ -100,7 +100,7 @@ export default function RegForm() {
       try {
         const token = getAuthToken()
         if (!token) {
-          console.error("Auth token not found")
+          // console.error("Auth token not found")
           setLoading(false)
           return
         }
@@ -115,10 +115,10 @@ export default function RegForm() {
         if (response.data?.success && response.data?.data) {
           setData(response.data.data)
         } else {
-          console.error("Failed to retrieve form data or no data returned.")
+          // console.error("Failed to retrieve form data or no data returned.")
         }
       } catch (error) {
-        console.error("Error fetching form data:", error)
+        // console.error("Error fetching form data:", error)
       } finally {
         setLoading(false)
       }

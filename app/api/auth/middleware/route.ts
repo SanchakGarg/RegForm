@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("JWT Verification error:", error);
+    // console.error("JWT Verification error:", error);
     // Return status 401 if token is invalid
     return NextResponse.json(
       { success: false, message: "Invalid or expired token" },

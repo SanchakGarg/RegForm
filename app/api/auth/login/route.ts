@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, token: encryptedToken });
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

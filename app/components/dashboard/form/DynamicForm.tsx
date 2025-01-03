@@ -5,7 +5,7 @@ import styles from "@/app/styles/toast.module.css"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
-
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z, ZodObject, ZodRawShape, ZodString, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
 import { useToast } from "@/hooks/use-toast";
@@ -50,7 +50,7 @@ const getAuthToken = (): string | null => {
   return authToken ? authToken.split("=")[1] : null;
 };
 const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObject<ZodRawShape>, meta: formMeta, defaultvalues: Record<string, any>, formId: string }> = ({ schema, draftSchema, meta, defaultvalues, formId }) => {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingDraft, setIsSubmittingDraft] = useState(false);
 
@@ -58,6 +58,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   const [isSaveDraft, setIsSaveDraft] = useState(false);
   const formSchema = isSaveDraft ? draftSchema : schema;
   const [hasReset, setHasReset] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,7 +71,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       // Signal that reset is complete
       setHasReset(!hasReset);
     }
-  }, [form, defaultvalues]);
+  }, [form, defaultvalues,hasReset]);
    const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
       setArrayFieldCounts((prev) => ({
@@ -145,8 +146,6 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
   );
   
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    // console.log(data);
-
     try {
       if (isSaveDraft) {
         setIsSubmittingDraft(true);
@@ -196,6 +195,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
             description: "Your form data has been submitted successfully.",
             className: styles["mobile-toast"],
           });
+          router.push('/dashboard/regForm');
         } else {
           toast({
             variant: "destructive",
@@ -206,7 +206,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
         }
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      // console.error("Submission error:", error);
 
       // Display error toast for unexpected errors
       toast({
@@ -580,7 +580,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   FormSelect.displayName = "FormSelect";
-  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset]);
+  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset,renderFormFields]);
 
   return (
     <Form {...form}>

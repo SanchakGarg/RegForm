@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { User,createErrorResponse } from "./interfaces";
 // Define interfaces for type safety
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // Handle connection errors and responses
 
@@ -57,7 +58,7 @@ export async function fetchUserData(
 
     return { success: true, data: user };
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    // console.error("Error fetching user data:", error);
     return {
       success: false,
       message: "Failed to fetch user data.",
@@ -83,7 +84,7 @@ export async function deleteUserData(queryKey: keyof User, queryValue: string) {
 
     return { success: true, message: "User deleted successfully." };
   } catch (error) {
-    console.error("Error deleting user data:", error);
+    // console.error("Error deleting user data:", error);
     return createErrorResponse(500, "Failed to delete user data.");
   }
 }
@@ -138,7 +139,7 @@ export async function deleteUserData(queryKey: keyof User, queryValue: string) {
 
     return createErrorResponse(400, "No changes were made.");
   } catch (error) {
-    console.error("Error updating user data:", error);
+    // console.error("Error updating user data:", error);
     return createErrorResponse(500, "Failed to update user data.");
   }
 }
@@ -160,7 +161,7 @@ export async function removeUserField(email: string, fieldToRemove: keyof User) 
 
     return { success: true, message: `Field '${fieldToRemove}' removed successfully.` };
   } catch (error) {
-    console.error("Error removing user field:", error);
+    // console.error("Error removing user field:", error);
     return createErrorResponse(500, "Failed to remove user field.");
   }
 }

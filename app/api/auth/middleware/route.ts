@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { decrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-256-bit-secret";
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("JWT Verification error:", error);
+    // console.error("JWT Verification error:", error);
     // Return status 401 if token is invalid
     return NextResponse.json(
       { success: false, message: "Invalid or expired token" },

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 import { decrypt } from "../encryption";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * Extracts the email from the JWT token in the cookies.
@@ -12,7 +13,7 @@ export function getEmailFromToken(req: NextRequest): string {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
-    console.error("JWT secret key is not defined in the environment variables.");
+    // console.error("JWT secret key is not defined in the environment variables.");
     return "";
   }
 
@@ -20,7 +21,7 @@ export function getEmailFromToken(req: NextRequest): string {
   const token = decrypt(req.cookies.get("authToken")?.value as string).jwt;
 
   if (!token) {
-    console.error("Auth token not found in cookies.");
+    // console.error("Auth token not found in cookies.");
     return "";
   }
 
@@ -31,7 +32,7 @@ export function getEmailFromToken(req: NextRequest): string {
     // Step 4: Extract and return the email from the decoded token
     return decoded.email || "";
   } catch (error) {
-    console.error("Error decoding token:", error);
+    // console.error("Error decoding token:", error);
     return "";
   }
 }

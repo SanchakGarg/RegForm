@@ -13,7 +13,7 @@ export const POST = async (req: any, res: any) => {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = file.name.replaceAll(" ", "_");
-  console.log(filename);
+  // console.log(filename);
 
   // Get the directory path from the environment variable
   const directoryPath = process.env.UPLOAD_PATH || path.join(process.cwd(), "/assets");
@@ -27,7 +27,7 @@ export const POST = async (req: any, res: any) => {
     
     return NextResponse.json({ Message: "Success", status: 201 });
   } catch (error) {
-    console.log("Error occurred", error);
+    // console.log("Error occurred", error);
     return NextResponse.json({ Message: "Failed", status: 500 });
   }
 };

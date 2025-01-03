@@ -49,7 +49,7 @@ export default function VerifyAccount() {
         setSuccess("Verification email has been resent.");
       }
     } catch (error) {
-      console.error("Error during resend email:", error);
+      // console.error("Error during resend email:", error);
       setError("An unexpected error occurred.");
     }
     setIsLoading(false);

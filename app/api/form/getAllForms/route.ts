@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-wrapper-object-types */
-
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { connectToDatabase } from "@/lib/mongodb";
@@ -53,7 +51,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in API handler:", error);
+    // console.error("Error in API handler:", error);
 
     // Handle JSON parsing errors
     if (error instanceof SyntaxError) {

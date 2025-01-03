@@ -132,7 +132,7 @@ export default function Form() {
       try {
         const token = getAuthToken();
         if (!token) {
-          console.error("Auth token not found");
+          // console.error("Auth token not found");
           setLoading(false);
           return;
         }
@@ -154,10 +154,10 @@ export default function Form() {
           setData(response.data.data.fields);
           setTitle(response.data.data.title);
         } else {
-          console.error("Failed to retrieve form data or no data returned.");
+          // console.error("Failed to retrieve form data or no data returned.");
         }
       } catch (error) {
-        console.error("Error fetching form data:", error);
+        // console.error("Error fetching form data:", error);
       } finally {
         setLoading(false);
       }
@@ -174,10 +174,10 @@ export default function Form() {
           const text = await response.text();
           setMarkdownContent(text);
         } else {
-          console.error("Markdown file not found:", `/markdown/${title}.md`);
+          // console.error("Markdown file not found:", `/markdown/${title}.md`);
         }
       } catch (error) {
-        console.error("Error fetching markdown file:", error);
+        // console.error("Error fetching markdown file:", error);
       }
     };
 

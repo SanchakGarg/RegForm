@@ -6,6 +6,7 @@ import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
 import { sports } from '../utils/forms/schema';
 import { useRouter } from 'next/navigation';
 /* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface SubmittedForm {
   Players: number;
@@ -31,13 +32,13 @@ const StatusDot = ({ status }: { status: string }) => (
   <div className="flex items-center space-x-2">
     <div 
       className={`w-2 h-2 rounded-full ${
-        status === 'confirmed' ? 'bg-green-500' : 'bg-red-500'
+        status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-500'
       }`}
     />
     <span className={`text-sm ${
-      status === 'confirmed' ? 'text-green-700' : 'text-red-700'
+      status === 'confirmed' ? 'text-green-700' : 'text-yellow-700'
     }`}>
-      {status === 'confirmed' ? 'Registered' : 'Pending'}
+      {status === 'confirmed' ? 'Registered' : 'In review'}
     </span>
   </div>
 );
@@ -105,11 +106,11 @@ export default function Dashboard() {
 
         const data = await response.json();
         
-        console.log('Dashboard sync response:', data);
+        // console.log('Dashboard sync response:', data);
 
         if (!data.success) {
           setError(data.error?.message || 'Failed to sync dashboard');
-          console.error('Dashboard sync failed:', data.error);
+          // console.error('Dashboard sync failed:', data.error);
         } else {
           setUserData(data.data);
           // Check if universityName is empty and redirect
@@ -119,7 +120,7 @@ export default function Dashboard() {
           }
         }
       } catch (err) {
-        console.error('Error syncing dashboard:', err);
+        // console.error('Error syncing dashboard:', err);
         setError('Failed to connect to the server');
       } finally {
         setLoading(false);

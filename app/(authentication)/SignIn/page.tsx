@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignUp } from "../../components/authentication/SignUp";
 import { Login } from "../../components/authentication/Login";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export default function LoginPage() {
   const [tabValue, setTabValue] = useState("SignIn");
   const router = useRouter();

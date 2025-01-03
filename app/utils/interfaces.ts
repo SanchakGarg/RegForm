@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface User {
   _id:Object;

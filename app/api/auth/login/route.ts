@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { compareHash } from "@/app/utils/hashing";
 import { encrypt } from "@/app/utils/encryption";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-256-bit-secret";
 
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, token: encryptedToken });
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

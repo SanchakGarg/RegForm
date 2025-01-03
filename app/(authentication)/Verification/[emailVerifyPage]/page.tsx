@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -44,7 +45,7 @@ export default function VerifyAccount() {
         setContent("Email Verified. You can Login now");
         if (response.data.token) {
           document.cookie = `authToken=${response.data.token}; path=/;`;
-          console.log("cookie set");
+          // console.("cookie set");
         }
       } else {
         setTitle("Invalid link");
@@ -52,7 +53,7 @@ export default function VerifyAccount() {
         setContent("Something went wrong. Please check again.");
       }
     } catch (error) {
-      console.error("Error verifying email:", error);
+      // console.error("Error verifying email:", error);
       setTitle("Error");
       setIsLoading(false);
       setContent("An error occurred during verification. Please try again later.");
@@ -64,7 +65,7 @@ export default function VerifyAccount() {
     if (token) {
       handleEmailVerify(token, email);
     }
-  }, [token]);
+  }, [token,email]);
 
   const navigateToDashboard = () => {
     router.push("/dashboard");

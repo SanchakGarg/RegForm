@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { OAuth2Client } from "google-auth-library";
 import { connectToDatabase } from "@/lib/mongodb";
 import jwt from "jsonwebtoken";
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Google authentication error:", error);
+    // console.error("Google authentication error:", error);
     return NextResponse.json({ success: false, message: "Internal server error." }, { status: 500 });
   }
 }

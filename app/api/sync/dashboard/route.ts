@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-wrapper-object-types */
-
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { NextRequest, NextResponse } from "next/server";
@@ -32,7 +30,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in API handler:", error);
+    // console.error("Error in API handler:", error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

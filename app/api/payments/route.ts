@@ -1,12 +1,13 @@
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { NextRequest, NextResponse } from "next/server";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export async function POST(req: NextRequest) {
   try {
     const email = getEmailFromToken(req);
     if (!email) {
-      console.error("Unauthorized: Invalid token or email not found");
+      // console.error("Unauthorized: Invalid token or email not found");
       return NextResponse.json(
         { success: false, message: "Unauthorized: Invalid token or email not found" },
         { status: 401 }
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     } else {
-      // console.error("Failed to retrieve user data:", userResponse.message);
+      // // console.error("Failed to retrieve user data:", userResponse.message);
       return NextResponse.json(
         {
           success: false,
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("Error in API handler:", error);
+    // console.error("Error in API handler:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 }

@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * Hash a plain-text password securely using bcrypt.
@@ -12,7 +13,7 @@ export async function hashPassword(password: string, saltRounds: number = 10): P
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     return hashedPassword;
   } catch (error) {
-    console.error("Error hashing password:", error);
+    // console.error("Error hashing password:", error);
     throw new Error("Failed to hash password. Please try again.");
   }
 }
@@ -29,7 +30,7 @@ export async function compareHash(password: string, hashedPassword: string): Pro
     const isMatch = await bcrypt.compare(password, hashedPassword);
     return isMatch;
   } catch (error) {
-    console.error("Error comparing passwords:", error);
+    // console.error("Error comparing passwords:", error);
     throw new Error("Failed to compare passwords. Please try again.");
   }
 }

@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useEffect, useState } from "react"
 import { Medal } from 'lucide-react';
@@ -62,7 +63,7 @@ const columns: ColumnDef<FormData>[] = [
   },
   {
     accessorKey: "updatedAt",
-    header: "Time",
+    header: "Last updated at",
     cell: (info) => {
       const date = new Date(info.getValue() as string);
       return date.toLocaleString("en-GB", {
@@ -100,7 +101,7 @@ export default function RegForm() {
       try {
         const token = getAuthToken()
         if (!token) {
-          console.error("Auth token not found")
+          // console.error("Auth token not found")
           setLoading(false)
           return
         }
@@ -115,10 +116,10 @@ export default function RegForm() {
         if (response.data?.success && response.data?.data) {
           setData(response.data.data)
         } else {
-          console.error("Failed to retrieve form data or no data returned.")
+          // console.error("Failed to retrieve form data or no data returned.")
         }
       } catch (error) {
-        console.error("Error fetching form data:", error)
+        // console.error("Error fetching form data:", error)
       } finally {
         setLoading(false)
       }

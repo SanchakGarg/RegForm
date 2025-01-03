@@ -1,12 +1,11 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
-
+import { format } from "date-fns"
 import { Medal } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
 import { useState, useEffect } from "react"
 import styles from "@/app/styles/toast.module.css"
@@ -14,25 +13,39 @@ import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRef } from "react";
+import { cn } from "@/lib/utils"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Calendar } from "@/components/ui/calendar"
+import { Plus, CalendarIcon, X } from 'lucide-react';
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -79,23 +92,304 @@ const FormSchema = z
     }
   )
 
-const AddPaymentSchema = z.object({
-  amount: z
-    .number({
-      required_error: "Amount is required",
-      invalid_type_error: "Amount must be a number",
-    })
-    .positive("Amount must be positive"),
-  file: z
-    .instanceof(File)
-    .refine((file) => file.size > 0, {
-      message: "Please select a valid file",
-    }),
-  message: z.string().optional(),
+const PaymentFormSchema = z.object({
+  paymentTypes: z.array(z.string()),
+  paymentMode: z.string(),
+  registrations: z.array(z.object({
+    sport: z.string(),
+    players: z.number()
+  })).min(1),
+  amountInNumbers: z.number(),
+  amountInWords: z.string(),
+  payeeName: z.string(),
+  transactionId: z.string(),
+  paymentProof: z.any(),
+  paymentDate: z.date()
 });
+type PaymentFormValues = z.infer<typeof PaymentFormSchema>;
 
+const PaymentForm = () => {
+  const [showSportFields, setShowSportFields] = useState(false);
 
+  const form = useForm<PaymentFormValues>({
+    resolver: zodResolver(PaymentFormSchema),
+    defaultValues: {
+      paymentTypes: [],
+      paymentMode: "",
+      registrations: [],
+      amountInNumbers: 0,
+      amountInWords: "",
+      payeeName: "",
+      transactionId: "",
+      paymentProof: undefined,
+      paymentDate: new Date()
+    }
+  });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "registrations"
+  });
+
+  const onSubmit = (data: PaymentFormValues) => {
+    console.log(data);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-6">
+        {/* Rest of the form content remains the same but with bold labels */}
+        <div className="space-y-4">
+          <FormLabel className="text-lg font-bold">Payment Type</FormLabel>
+          <div className="flex gap-4">
+            <FormField
+              control={form.control}
+              name="paymentTypes"
+              render={() => (
+                <FormItem className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      onCheckedChange={(checked) => {
+                        const current = form.getValues("paymentTypes");
+                        if (checked) {
+                          form.setValue("paymentTypes", [...current, "accommodation"]);
+                        } else {
+                          form.setValue("paymentTypes", current.filter(t => t !== "accommodation"));
+                        }
+                      }}
+                    />
+                    <span>Accommodation</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      onCheckedChange={(checked) => {
+                        const current = form.getValues("paymentTypes");
+                        if (checked) {
+                          form.setValue("paymentTypes", [...current, "registration"]);
+                          setShowSportFields(true);
+                        } else {
+                          form.setValue("paymentTypes", current.filter(t => t !== "registration"));
+                          setShowSportFields(false);
+                          form.setValue("registrations", []);
+                        }
+                      }}
+                    />
+                    <span>Player Registration</span>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <FormField
+          control={form.control}
+          name="paymentMode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Mode of Payment</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank">Bank Transfer</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        {showSportFields && (
+          <div className="space-y-4">
+            <div>
+              <FormLabel className="text-lg font-bold block">Sport Registration Details</FormLabel>
+              <FormDescription>
+                Please enter number of players for each sport you're paying registration fee for
+              </FormDescription>
+            </div>
+            <div className="flex items-center gap-25 justify-around"><FormLabel className="font-medium font-bold">Select Sport</FormLabel>
+            <FormLabel className="font-medium font-bold">Number of players</FormLabel></div>
+
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-center gap-4">
+                
+                <FormField
+                  control={form.control}
+                  name={`registrations.${index}.sport`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a sport" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(sports).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`registrations.${index}.players`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                     
+                      <Input
+                        type="number"
+                        placeholder="Enter number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        min={1}
+                        max={20}
+                      />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className=""
+                  onClick={() => remove(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              className="bg-black text-white hover:bg-gray-800"
+              onClick={() => append({ sport: "", players: 1 })}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Sport
+            </Button>
+          </div>
+        )}
+
+        <FormField
+          control={form.control}
+          name="amountInNumbers"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Total Amount in Numbers</FormLabel>
+              <Input
+                type="number"
+                placeholder="Enter amount in numbers"
+                {...field}
+                onChange={e => field.onChange(parseFloat(e.target.value))}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amountInWords"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Total Amount in Words</FormLabel>
+              <Input placeholder="Enter amount in words" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="payeeName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Name of Payee</FormLabel>
+              <Input placeholder="Enter payee name" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="transactionId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Transaction ID/Cheque Number</FormLabel>
+              <Input placeholder="Enter transaction ID or cheque number" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="paymentProof"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Payment Proof</FormLabel>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => field.onChange(e.target.files?.[0])}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="paymentDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel className="font-bold text-lg">Date of Payment</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
+          Submit Payment
+        </Button>
+      </form>
+    </Form>
+  );
+};
 
 const getAuthToken = (): string | null => {
   if (typeof document !== 'undefined') {
@@ -132,10 +426,6 @@ export default function Payments() {
     defaultValues: { needAccommodation: false, numberOfPlayers: undefined },
   })
 
-  const formAddPayment = useForm<z.infer<typeof AddPaymentSchema>>({
-    resolver: zodResolver(AddPaymentSchema),
-    defaultValues: { amount: undefined, file: undefined, message: "" },
-  })
 
   // const [formReset,setFormReset] = useState(false);
 
@@ -221,64 +511,64 @@ export default function Payments() {
   }
 
 
-  async function handleAddPayment(data: z.infer<typeof AddPaymentSchema>) {
-    try {
-      // Prepare form data
-      const formData = new FormData();
-      if (data.file) {
-        formData.append("file", data.file); // Append the selected file
-      }
-      formData.append("amount", data.amount.toString()); // Append the amount
-      if (data.message) {
-        formData.append("message", data.message); // Append optional remarks
-      }
+  // async function handleAddPayment(data: z.infer<typeof AddPaymentSchema>) {
+  //   try {
+  //     // Prepare form data
+  //     const formData = new FormData();
+  //     if (data.file) {
+  //       formData.append("file", data.file); // Append the selected file
+  //     }
+  //     formData.append("amount", data.amount.toString()); // Append the amount
+  //     if (data.message) {
+  //       formData.append("message", data.message); // Append optional remarks
+  //     }
 
-      // Fetch token for authentication
-      const token = getAuthToken();
-      if (!token) {
-        return toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Authentication token missing. Please log in.",
-          className: styles["mobile-toast"],
-        });
-      }
-      const response = await fetch(`/api/payments/upload`, {
+  //     // Fetch token for authentication
+  //     const token = getAuthToken();
+  //     if (!token) {
+  //       return toast({
+  //         variant: "destructive",
+  //         title: "Error",
+  //         description: "Authentication token missing. Please log in.",
+  //         className: styles["mobile-toast"],
+  //       });
+  //     }
+  //     const response = await fetch(`/api/payments/upload`, {
 
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // Pass the token in headers
-        },
-        body: formData, // Send formData directly
-      });
+  //       method: "POST",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`, // Pass the token in headers
+  //       },
+  //       body: formData, // Send formData directly
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      // Handle response
-      if (response.ok && result.success) {
-        toast({
-          title: "Success",
-          description: "Payment added successfully",
-          className: styles["mobile-toast"],
-        });
-        formAddPayment.reset(); // Reset the form after success
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.message || "Failed to add payment. Please try again.",
-          className: styles["mobile-toast"],
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred.",
-        className: styles["mobile-toast"],
-      });
-    }
-  }
+  //     // Handle response
+  //     if (response.ok && result.success) {
+  //       toast({
+  //         title: "Success",
+  //         description: "Payment added successfully",
+  //         className: styles["mobile-toast"],
+  //       });
+  //       formAddPayment.reset(); // Reset the form after success
+  //     } else {
+  //       toast({
+  //         variant: "destructive",
+  //         title: "Error",
+  //         description: result.message || "Failed to add payment. Please try again.",
+  //         className: styles["mobile-toast"],
+  //       });
+  //     }
+  //   } catch (error) {
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Error",
+  //       description: error instanceof Error ? error.message : "An unexpected error occurred.",
+  //       className: styles["mobile-toast"],
+  //     });
+  //   }
+  // }
 
 
 
@@ -299,7 +589,9 @@ export default function Payments() {
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) return <div className="flex items-center justify-center h-64">
+  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+</div>
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -310,86 +602,22 @@ export default function Payments() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
-        <AlertDialog>
+        <AlertDialog >
           <AlertDialogTrigger asChild>
             <Button>Add Payment</Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
+          <AlertDialogContent className='max-h-[90vh] overflow-auto'>
+            <AlertDialogHeader >
               <AlertDialogTitle>Add Payment</AlertDialogTitle>
               <AlertDialogDescription>
                 Enter payment details below.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <Form {...formAddPayment}>
-              <form onSubmit={formAddPayment.handleSubmit(handleAddPayment)} className="space-y-4">
-                {/* Amount Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Amount</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter amount"
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* File Input Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="file"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Upload Proof of Payment</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*,application/pdf" // Limit to images and PDFs
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            field.onChange(file || null); // Pass the file or null to the field
-                          }}
-                        />
-
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Remarks Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Remarks (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Add remarks (if any)"
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {/* Submit Button */}
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <Button type="submit">Submit</Button>
-                </AlertDialogFooter>
-              </form>
-            </Form>
+            <PaymentForm></PaymentForm>
+            <div className="flex flex-col items-center w-full px-6" >
+              <AlertDialogCancel asChild><Button type="button" variant={"outline"} className="w-full">
+                Cancel
+              </Button></AlertDialogCancel></div>
           </AlertDialogContent>
         </AlertDialog>
 
@@ -477,7 +705,7 @@ export default function Payments() {
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="Enter number of players"
+                            placeholder="number of players"
                             value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(

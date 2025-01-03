@@ -2,6 +2,7 @@ import { encrypt } from "@/app/utils/encryption";
 import { connectToDatabase } from "@/lib/mongodb";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 dotenv.config();
 
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error sending email:", error);
+    // console.error("Error sending email:", error);
     return new Response(
       JSON.stringify({ error: "Failed to send email" }),
       { status: 500 }

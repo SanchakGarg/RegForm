@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       return createErrorResponse(400, "Verification failed.", JSON.stringify(dbEmail));
     }
   } catch (error: unknown) {
-    console.error(error);
+    // console.error(error);
 
     // Return a generic error response
     return createErrorResponse(500, "Internal server error.", String(error));

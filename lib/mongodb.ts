@@ -32,7 +32,7 @@ export async function connectToDatabase() {
     const db = clientInstance.db(process.env.DB_NAME); // You can specify database name here if necessary
     return { client: clientInstance, db };
   } catch (error) {
-    console.error("MongoDB connection error:", error);
+    // console.error("MongoDB connection error:", error);
     throw error; // Re-throw for upstream debugging
   }
 }

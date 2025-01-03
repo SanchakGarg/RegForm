@@ -293,7 +293,7 @@ export default function Payments() {
   const calculateAccommodationTotal = () => {
     if (!form.getValues("needAccommodation")) return 0
     const players = form.getValues("numberOfPlayers") || 0
-    return players * 500
+    return players * 2100
 
   }
 

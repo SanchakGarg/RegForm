@@ -3,10 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/no-unescaped-entities */
-/* eslint-disable react-hooks/exhaustive-deps */
 
-import { Medal } from 'lucide-react';
 import { Medal } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -17,17 +14,6 @@ import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRef } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,16 +45,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import { post } from "@/app/utils/PostGetData"
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-    <Medal className="w-16 h-16 text-gray-400 mb-4" />
-    <h3 className="text-xl font-bold text-gray-700 mb-2">No Sports Registered</h3>
-    <p className="text-gray-500 text-center max-w-md">
-      You haven't registered for any sports yet. Register for a sport to start your athletic journey!
-    </p>
-  </div>
-);
-
+import { sports } from '@/app/utils/forms/schema';
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
     <Medal className="w-16 h-16 text-gray-400 mb-4" />
@@ -101,24 +78,6 @@ const FormSchema = z
       path: ["numberOfPlayers"],
     }
   )
-
-const AddPaymentSchema = z.object({
-  amount: z
-    .number({
-      required_error: "Amount is required",
-      invalid_type_error: "Amount must be a number",
-    })
-    .positive("Amount must be positive"),
-  file: z
-    .instanceof(File)
-    .refine((file) => file.size > 0, {
-      message: "Please select a valid file",
-    }),
-  message: z.string().optional(),
-});
-
-
-
 
 const AddPaymentSchema = z.object({
   amount: z
@@ -176,19 +135,12 @@ export default function Payments() {
   const formAddPayment = useForm<z.infer<typeof AddPaymentSchema>>({
     resolver: zodResolver(AddPaymentSchema),
     defaultValues: { amount: undefined, file: undefined, message: "" },
-    defaultValues: { needAccommodation: false, numberOfPlayers: undefined },
-  })
-
-  const formAddPayment = useForm<z.infer<typeof AddPaymentSchema>>({
-    resolver: zodResolver(AddPaymentSchema),
-    defaultValues: { amount: undefined, file: undefined, message: "" },
   })
 
   // const [formReset,setFormReset] = useState(false);
 
 
   const resetFormOnce = useRef(false);
-
 
   useEffect(() => {
     const fetchPaymentData = async () => {
@@ -209,13 +161,10 @@ export default function Payments() {
             }
           );
 
-
           setShowInput(response.data.data?.Accommodation.needAccommodation || false);
-
 
           // Only reset the form once after data is fetched
           if (!resetFormOnce.current) {
-            form.reset({ needAccommodation: false, numberOfPlayers: undefined });
             form.reset({ needAccommodation: false, numberOfPlayers: undefined });
             form.reset(response.data.data?.Accommodation || {});
             resetFormOnce.current = true;
@@ -228,10 +177,8 @@ export default function Payments() {
       }
     };
 
-
     fetchPaymentData();
   }, []);
-
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
@@ -242,10 +189,8 @@ export default function Payments() {
         {
           cookies: token,
           accommodationData: data
-          accommodationData: data
         }
       );
-
 
       if (!response.data?.success) {
         return toast({
@@ -257,14 +202,12 @@ export default function Payments() {
         });
       }
 
-
       toast({
         title: "Success",
         description: "Data saved successfully",
         className: styles["mobile-toast"],
 
       });
-
 
     } catch (error) {
       toast({
@@ -301,8 +244,8 @@ export default function Payments() {
         });
       }
   
-
-      const response = await fetch(`/api/payments/upload`, {
+      // Make the API request
+const response = await fetch(`/api/payments/upload`, {
 
         method: "POST",
         headers: {
@@ -358,7 +301,9 @@ export default function Payments() {
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) return<div className="flex items-center justify-center h-64">
+  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+</div>
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -369,87 +314,6 @@ export default function Payments() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button>Add Payment</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Add Payment</AlertDialogTitle>
-              <AlertDialogDescription>
-                Enter payment details below.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <Form {...formAddPayment}>
-              <form onSubmit={formAddPayment.handleSubmit(handleAddPayment)} className="space-y-4">
-                {/* Amount Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Amount</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter amount"
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* File Input Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="file"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Upload Proof of Payment</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            field.onChange(file || null); // Pass the file or null to the field
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Remarks Field */}
-                <FormField
-                  control={formAddPayment.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Remarks (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Add remarks (if any)"
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {/* Submit Button */}
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <Button type="submit">Submit</Button>
-                </AlertDialogFooter>
-              </form>
-            </Form>
-          </AlertDialogContent>
-        </AlertDialog>
-
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button>Add Payment</Button>
@@ -544,7 +408,6 @@ export default function Payments() {
             <div className="overflow-x-auto">
               {!paymentData?.submittedForms || Object.keys(paymentData.submittedForms).length === 0 ? (
                 <EmptyState />
-                <EmptyState />
               ) : (
                 <Table>
                   <TableHeader>
@@ -557,7 +420,7 @@ export default function Payments() {
                   <TableBody>
                     {Object.entries(paymentData.submittedForms).map(([sport, data]) => (
                       <TableRow key={sport}>
-                        <TableCell className="font-medium">{sport}</TableCell>
+                        <TableCell className="font-medium">{sports[sport]}</TableCell>
                         <TableCell className="text-right">{data.Players}</TableCell>
                         <TableCell className="text-right">₹{data.Players * 800}</TableCell>
                       </TableRow>
@@ -597,7 +460,6 @@ export default function Payments() {
                             if (!isChecked) {
                               form.setValue("numberOfPlayers", undefined);
                               form.reset({ needAccommodation: false })
-                              form.reset({ needAccommodation: false })
                             }
                           }}
                         />
@@ -621,7 +483,6 @@ export default function Payments() {
                             value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value ? parseInt(e.target.value) : 0
                                 e.target.value ? parseInt(e.target.value) : 0
                               )
                             }

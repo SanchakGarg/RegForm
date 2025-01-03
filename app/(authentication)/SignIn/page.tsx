@@ -99,7 +99,7 @@ export default function LoginPage() {
         useOneTap
         theme="outline"
         logo_alignment="center"
-        text="signin_with"
+        text="signin_with"       
       />
     </div>
   );

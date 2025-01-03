@@ -232,7 +232,7 @@ export default function Payments() {
       if (data.message) {
         formData.append("message", data.message); // Append optional remarks
       }
-  
+
       // Fetch token for authentication
       const token = getAuthToken();
       if (!token) {
@@ -243,9 +243,7 @@ export default function Payments() {
           className: styles["mobile-toast"],
         });
       }
-  
-      // Make the API request
-const response = await fetch(`/api/payments/upload`, {
+      const response = await fetch(`/api/payments/upload`, {
 
         method: "POST",
         headers: {
@@ -253,9 +251,9 @@ const response = await fetch(`/api/payments/upload`, {
         },
         body: formData, // Send formData directly
       });
-  
+
       const result = await response.json();
-  
+
       // Handle response
       if (response.ok && result.success) {
         toast({
@@ -281,7 +279,7 @@ const response = await fetch(`/api/payments/upload`, {
       });
     }
   }
-  
+
 
 
   const calculateSportsTotal = () => {
@@ -301,9 +299,7 @@ const response = await fetch(`/api/payments/upload`, {
 
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
-  if (isLoading) return<div className="flex items-center justify-center h-64">
-  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-</div>
+  if (isLoading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -356,11 +352,13 @@ const response = await fetch(`/api/payments/upload`, {
                       <FormControl>
                         <Input
                           type="file"
+                          accept="image/*,application/pdf" // Limit to images and PDFs
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             field.onChange(file || null); // Pass the file or null to the field
                           }}
                         />
+
                       </FormControl>
                       <FormMessage />
                     </FormItem>

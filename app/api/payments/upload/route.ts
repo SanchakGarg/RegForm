@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { writeFile } from "fs/promises";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { writeFile, mkdir } from "fs/promises";
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export const POST = async (req:any, res:any) => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const POST = async (req: any, res: any) => {
   const formData = await req.formData();
 
   const file = formData.get("file");
@@ -12,16 +12,22 @@ export const POST = async (req:any, res:any) => {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const filename =  file.name.replaceAll(" ", "_");
+  const filename = file.name.replaceAll(" ", "_");
   console.log(filename);
+
+  // Get the directory path from the environment variable
+  const directoryPath = process.env.UPLOAD_PATH || path.join(process.cwd(), "/assets");
+
   try {
-    await writeFile(
-      path.join(process.cwd(), "public/assets/" + filename),
-      buffer
-    );
+    // Check if the directory exists, if not, create it
+    await mkdir(directoryPath, { recursive: true });
+
+    // Write the file to the directory
+    await writeFile(path.join(directoryPath, filename), buffer);
+    
     return NextResponse.json({ Message: "Success", status: 201 });
   } catch (error) {
-    console.log("Error occured ", error);
+    console.log("Error occurred", error);
     return NextResponse.json({ Message: "Failed", status: 500 });
   }
 };

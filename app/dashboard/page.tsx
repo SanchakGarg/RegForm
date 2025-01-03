@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Users, Medal } from 'lucide-react';
 import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
-import { string } from 'zod';
 import { sports } from '../utils/forms/schema';
 /* eslint-disable react/no-unescaped-entities */
 

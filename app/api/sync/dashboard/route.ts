@@ -2,8 +2,6 @@
 
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -18,9 +16,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Connect to MongoDB
-    const { db } = await connectToDatabase();
-    const userCollection: Collection = db.collection("users");
-
     // Fetch user data
     const userResponse = await fetchUserData("email", email, ["name", "universityName","submittedForms"]);
     

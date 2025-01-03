@@ -147,9 +147,9 @@ async function sendConfirmationEmail(formData: FormData) {
     // Send email to all participants
     for (const email of participantEmails) {
         await transporter.sendMail({
-            from: `Thsnk you for registering for Agneepath!!`,
+            from: `Registation <SMTP_USER>`,
             to: email,
-            subject: `Registration Confirmation - ${sports[formData.title]}`,
+            subject: `Thank you for registering for Agneepath 6.0`,
             html: emailContent,
             attachments,
             headers: {

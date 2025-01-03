@@ -6,6 +6,7 @@ import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import { createErrorResponse, User } from "@/app/utils/interfaces";
+import sendConfirmationEmail from "@/app/utils/mailer/ConfirmationMail";
 interface FormObj {
   ownerId: Object;
   fields: Object;
@@ -126,7 +127,7 @@ export async function POST(req: NextRequest) {
     const ownerId = form.ownerId;
 
     // Fetch user data based on the ownerId
-    const userResponse = await fetchUserData("_id", ownerId, ["email"]);
+    const userResponse = await fetchUserData("_id", ownerId, ["email","universityName","name"]);
     if (!userResponse.success || !userResponse.data?.email) {
       return NextResponse.json(
         { success: false, message: "Owner not found or invalid response" },
@@ -165,6 +166,25 @@ export async function POST(req: NextRequest) {
       { _id: new ObjectId(formId) },
       { $set: updatedData }
     );
+    // In your POST function, where you're calling sendConfirmationEmail:
+if (!isDraft) {
+  try {
+    const emailFormData = {
+      _id: formId,
+      ownerId: ownerId.toString(),
+      name:userResponse.data.name, // Convert ObjectId to string
+      title: form.title,
+      universityName:userResponse.data.universityName,
+      status: "submitted",
+      fields: fields // This already has the correct structure
+    };
+    
+    await sendConfirmationEmail(emailFormData);
+  } catch (error) {
+    console.error("Failed to send confirmation email:", error);
+    // Continue with the response even if email fails
+  }
+}
 
     // Now, call updateUserData to update the user collection
     const playerCount = fields.playerFields ? fields.playerFields.length : 0;

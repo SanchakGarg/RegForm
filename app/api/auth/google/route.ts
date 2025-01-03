@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     });
 
     const payload = ticket.getPayload();
-    const { email, name, picture } = payload || {};
+    const { email, name } = payload || {};
 
     if (!email || !name) {
       return NextResponse.json({ success: false, message: "Missing user information." }, { status: 400 });

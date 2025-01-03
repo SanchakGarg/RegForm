@@ -209,8 +209,8 @@ const PaymentForm = () => {
                 Please enter number of players for each sport you're paying registration fee for
               </FormDescription>
             </div>
-            <div className="flex items-center gap-25 justify-around"><FormLabel className="font-medium font-bold">Select Sport</FormLabel>
-            <FormLabel className="font-medium font-bold">Number of players</FormLabel></div>
+            <div className="flex items-center gap-25 justify-around"><FormLabel className=" font-bold">Select Sport</FormLabel>
+            <FormLabel className="font-bold">Number of players</FormLabel></div>
 
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-4">

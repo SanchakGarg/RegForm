@@ -5,6 +5,7 @@ import styles from "@/app/styles/toast.module.css"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disbale react-hooks/exhaustive-deps*/ 
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z, ZodObject, ZodRawShape, ZodString, ZodArray, ZodDate, ZodEnum, ZodEffects, ZodOptional } from "zod";
@@ -71,7 +72,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       // Signal that reset is complete
       setHasReset(!hasReset);
     }
-  }, [form, defaultvalues,hasReset]);
+  }, [form, defaultvalues]);
    const addFieldToArray = useCallback(
     (fieldPath: string, min: number) => {
       setArrayFieldCounts((prev) => ({
@@ -580,7 +581,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
 
 
   FormSelect.displayName = "FormSelect";
-  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset,renderFormFields]);
+  const memoizedFormFields = useMemo(() => renderFormFields(schema), [schema, arrayFieldCounts,hasReset]);
 
   return (
     <Form {...form}>

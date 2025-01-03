@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
+import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { Medal } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -19,15 +20,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import {
   Select,
   SelectContent,
@@ -210,12 +202,12 @@ const PaymentForm = () => {
               </FormDescription>
             </div>
             <div className="flex items-center gap-25 justify-around"><FormLabel className=" font-bold">Select Sport</FormLabel>
-            <FormLabel className="font-bold">Number of players</FormLabel></div>
+              <FormLabel className="font-bold">Number of players</FormLabel></div>
 
 
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-4">
-                
+
                 <FormField
                   control={form.control}
                   name={`registrations.${index}.sport`}
@@ -225,11 +217,14 @@ const PaymentForm = () => {
                         <SelectTrigger>
                           <SelectValue placeholder="Choose a sport" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(sports).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>{value}</SelectItem>
-                          ))}
-                        </SelectContent>
+                        {/* Use Portal explicitly */}
+                        <SelectContent className=" overflow-y-scroll z-50">
+                            {Object.entries(sports).map(([key, value]) => (
+                              <SelectItem key={key} value={key}>
+                                {value}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
                       </Select>
                     </FormItem>
                   )}
@@ -239,7 +234,7 @@ const PaymentForm = () => {
                   name={`registrations.${index}.players`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                     
+
                       <Input
                         type="number"
                         placeholder="Enter number"
@@ -413,6 +408,14 @@ interface PaymentData {
 }
 
 export default function Payments() {
+  const paymentFormRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    // Scroll to the target section
+    if (paymentFormRef.current) {
+      paymentFormRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   const [showInput, setShowInput] = useState(false);
 
   const [paymentData, setPaymentData] = useState<PaymentData>({
@@ -591,8 +594,8 @@ export default function Payments() {
   const overallTotal = calculateSportsTotal() + calculateAccommodationTotal()
 
   if (isLoading) return <div className="flex items-center justify-center h-64">
-  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-</div>
+    <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+  </div>
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -603,24 +606,7 @@ export default function Payments() {
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
-        <AlertDialog >
-          <AlertDialogTrigger asChild>
-            <Button>Add Payment</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className='max-h-[90vh] overflow-auto'>
-            <AlertDialogHeader >
-              <AlertDialogTitle>Add Payment</AlertDialogTitle>
-              <AlertDialogDescription>
-                Enter payment details below.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <PaymentForm></PaymentForm>
-            <div className="flex flex-col items-center w-full px-6" >
-              <AlertDialogCancel asChild><Button type="button" variant={"outline"} className="w-full">
-                Cancel
-              </Button></AlertDialogCancel></div>
-          </AlertDialogContent>
-        </AlertDialog>
+      <Button onClick={handleScroll}>Add Payment</Button>
 
 
         <Card>
@@ -744,6 +730,10 @@ export default function Payments() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      <Separator className="my-4" ref={paymentFormRef}/>
+      <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
+      <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>
+      <PaymentForm />
+            </div>
   )
 }

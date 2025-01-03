@@ -149,7 +149,7 @@ async function sendConfirmationEmail(formData: FormData) {
         await transporter.sendMail({
             from: `Registation <SMTP_USER>`,
             to: email,
-            subject: `Thank you for registering for Agneepath!!}`,
+            subject: `Thank you for registering for Agneepath 6.0`,
             html: emailContent,
             attachments,
             headers: {

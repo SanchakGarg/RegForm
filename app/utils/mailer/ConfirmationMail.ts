@@ -118,9 +118,9 @@ async function sendConfirmationEmail(formData: FormData) {
       </table>
       
       
-      <p style="margin-top: 20px;">If you have any questions or need to update your information, please feel free to contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a></p>
+      <p style="margin-top: 20px;">If you have any questions or need to update your information, please feel free to contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a>.</p>
       
-      <p style="margin-top: 30px;">Best regards,<br>Team Agneepath<br>Ashoka University</p>
+      <p style="margin-top: 30px;">Best regards,<br>Team Agneepath 6.0<br>Ashoka University</p>
       
       <img src="cid:unique-image-cid" alt="Agneepath Logo" style="max-width: 15%; height: auto;" />
     </div>
@@ -150,11 +150,12 @@ async function sendConfirmationEmail(formData: FormData) {
             from: `Registation <SMTP_USER>`,
             to: email,
             subject: `Thank you for registering for Agneepath 6.0`,
+            
+            headers: {
+                "X-Gm-NoSave": "1",
+            },
             html: emailContent,
             attachments,
-            headers: {
-                "X-Gm-NoSave": "1"
-            }
         });
     }
 }

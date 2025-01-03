@@ -31,13 +31,13 @@ const StatusDot = ({ status }: { status: string }) => (
   <div className="flex items-center space-x-2">
     <div 
       className={`w-2 h-2 rounded-full ${
-        status === 'confirmed' ? 'bg-green-500' : 'bg-red-500'
+        status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-500'
       }`}
     />
     <span className={`text-sm ${
-      status === 'confirmed' ? 'text-green-700' : 'text-red-700'
+      status === 'confirmed' ? 'text-green-700' : 'text-yellow-700'
     }`}>
-      {status === 'confirmed' ? 'Registered' : 'Pending'}
+      {status === 'confirmed' ? 'Registered' : 'In review'}
     </span>
   </div>
 );

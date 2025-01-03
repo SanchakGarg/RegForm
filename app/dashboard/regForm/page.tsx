@@ -62,7 +62,7 @@ const columns: ColumnDef<FormData>[] = [
   },
   {
     accessorKey: "updatedAt",
-    header: "Time",
+    header: "Last updated at",
     cell: (info) => {
       const date = new Date(info.getValue() as string);
       return date.toLocaleString("en-GB", {

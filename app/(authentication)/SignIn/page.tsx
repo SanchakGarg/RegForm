@@ -38,11 +38,11 @@ export default function LoginPage() {
           router.push("/dashboard");
         }
       })
-      .catch((err) => // console.error("Google login failed:", err));
+      .catch((err) => console.error("Google login failed:", err));
   };
 
   const handleGoogleError = () => {
-    // console.error("Google Login Failed");
+    console.error("Google Login Failed");
   };
 
   return (

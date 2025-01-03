@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     });
 
     const payload = ticket.getPayload();
-    const { email, name, picture } = payload || {};
+    const { email, name } = payload || {};
 
     if (!email || !name) {
       return NextResponse.json({ success: false, message: "Missing user information." }, { status: 400 });
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       const result = await collection.insertOne({
         email: email.toLowerCase(),
         name,
-        picture,
         googleAuth: true,
         emailVerified: true, // Google has verified the email
         createdAt: new Date(),
@@ -50,16 +49,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Failed to fetch user after insert." }, { status: 500 });
       }
     }
+    const universityNameRequired = existingUser.universityName === "";
 
     // Generate JWT token
-    const payloadJWT = { email: existingUser.email, name: existingUser.name, googleAuth: existingUser.googleAuth };
-    const tokenJWT = jwt.sign(payloadJWT, JWT_SECRET, { expiresIn: "5d" });
+    const payloadJWT = { email: existingUser.email, name: existingUser.name, googleAuth: existingUser.googleAuth, universityNameRequired:universityNameRequired};
+    const tokenJWT = jwt.sign(payloadJWT, JWT_SECRET, { expiresIn: "2d" });
 
     // Encrypt token (optional)
     const encryptedToken = encrypt({ jwt: tokenJWT });
 
     // Determine if universityName is required (based on whether it's empty)
-    const universityNameRequired = existingUser.universityName === "";
 
     return NextResponse.json({
       success: true,

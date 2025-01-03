@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       removeUserField(email, 'VerificationId');
       const payload = { email:email};
 
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "5d" });
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "2d" });
 
       // Encrypt token (optional)
       const encryptedToken = encrypt({ jwt: token });

@@ -1,13 +1,13 @@
-import React from 'react';
+"use client"
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Users, Medal } from 'lucide-react';
 import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
+import { sports } from '../utils/forms/schema';
 /* eslint-disable react/no-unescaped-entities */
 
 interface SubmittedForm {
-  Players: {
-    $numberInt: string;
-  };
+  Players: number;
   status: 'confirmed' | 'not_confirmed';
 }
 
@@ -19,6 +19,12 @@ interface UserData {
     [key: string]: SubmittedForm;
   };
 }
+
+const getAuthToken = (): string | null => {
+  const cookies = document.cookie.split("; ");
+  const authToken = cookies.find(cookie => cookie.startsWith("authToken="));
+  return authToken ? authToken.split("=")[1] : null;
+};
 
 const StatusDot = ({ status }: { status: string }) => (
   <div className="flex items-center space-x-2">
@@ -35,7 +41,7 @@ const StatusDot = ({ status }: { status: string }) => (
   </div>
 );
 
-const SportCard = ({ sport, players, status }: { sport: string, players: string, status: string }) => (
+const SportCard = ({ sport, players, status }: { sport: string, players: number, status: string }) => (
   <div className="bg-white rounded-xl p-6 border border-gray-100 hover:border-black transition-all duration-300 group">
     <div className="flex items-center justify-between mb-4">
       <h3 className="font-bold text-lg text-gray-900 group-hover:text-black">
@@ -65,50 +71,68 @@ const EmptyState = () => (
   </div>
 );
 
+const LoadingState = () => (
+  <div className="animate-pulse space-y-8">
+    <div className="h-32 bg-gray-200 rounded-2xl"></div>
+    <div className="h-48 bg-gray-200 rounded-lg"></div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-40 bg-gray-200 rounded-xl"></div>
+      ))}
+    </div>
+  </div>
+);
+
 export default function Dashboard() {
-  const userData: UserData = {
-    name: "sanchak garg",
-    universityName: "ashoka university",
-    email: "sanchak.garg_ug2023@ashoka.edu.in",
-    submittedForms: {
-      "Shooting": {
-        Players: {
-          $numberInt: "2"
-        },
-        status: "confirmed"
-      },
-      "Swimming_Women": {
-        Players: {
-          $numberInt: "2"
-        },
-        status: "not_confirmed"
-      },
-      "Basketball": {
-        Players: {
-          $numberInt: "5"
-        },
-        status: "confirmed"
-      },
-      "Table_Tennis": {
-        Players: {
-          $numberInt: "4"
-        },
-        status: "not_confirmed"
-      },
-      "Badminton": {
-        Players: {
-          $numberInt: "3"
-        },
-        status: "confirmed"
-      },
-      "Chess": {
-        Players: {
-          $numberInt: "2"
-        },
-        status: "confirmed"
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncDashboard = async () => {
+      try {
+        const response = await fetch('/api/sync/dashboard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cookies: getAuthToken(),
+          }),
+        });
+
+        const data = await response.json();
+        
+        console.log('Dashboard sync response:', data);
+
+        if (!data.success) {
+          setError(data.error?.message || 'Failed to sync dashboard');
+          console.error('Dashboard sync failed:', data.error);
+        } else {
+          setUserData(data.data);
+        }
+      } catch (err) {
+        console.error('Error syncing dashboard:', err);
+        setError('Failed to connect to the server');
+      } finally {
+        setLoading(false);
       }
-    }
-  };
+    };
+
+    syncDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen pt-6 pr-6 w-full max-w-[1200px]">
+        <LoadingState />
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return null;
+  }
 
   const formattedName = userData.name
     .split(' ')
@@ -132,6 +156,12 @@ export default function Dashboard() {
           Track your sports registrations and stay in the game
         </p>
       </div>
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Profile Card */}
       <Card className="border-none shadow-lg mt-8">
@@ -175,8 +205,8 @@ export default function Dashboard() {
             {Object.entries(userData.submittedForms || {}).map(([sport, data]) => (
               <SportCard
                 key={sport}
-                sport={sport}
-                players={data.Players.$numberInt}
+                sport={sports[sport]}
+                players={data.Players}
                 status={data.status}
               />
             ))}

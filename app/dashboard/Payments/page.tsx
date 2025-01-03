@@ -45,6 +45,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import { post } from "@/app/utils/PostGetData"
+import { sports } from '@/app/utils/forms/schema';
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
     <Medal className="w-16 h-16 text-gray-400 mb-4" />
@@ -242,8 +243,6 @@ export default function Payments() {
           className: styles["mobile-toast"],
         });
       }
-
-      // Make the API request
       const response = await fetch(`/api/payments/upload`, {
 
         method: "POST",
@@ -419,7 +418,7 @@ export default function Payments() {
                   <TableBody>
                     {Object.entries(paymentData.submittedForms).map(([sport, data]) => (
                       <TableRow key={sport}>
-                        <TableCell className="font-medium">{sport}</TableCell>
+                        <TableCell className="font-medium">{sports[sport]}</TableCell>
                         <TableCell className="text-right">{data.Players}</TableCell>
                         <TableCell className="text-right">₹{data.Players * 800}</TableCell>
                       </TableRow>

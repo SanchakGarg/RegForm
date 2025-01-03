@@ -30,7 +30,7 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
   });
 }
 
- async function updateUserData(email: string, data: Partial<User>) {
+async function updateUserData(email: string, data: Partial<User>) {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection("users");
@@ -61,15 +61,22 @@ function typecastDatesInPlayerFields(playerFields: Record<string, object>[]) {
       { upsert: true } // Create if not found
     );
 
-    if (result.upsertedCount > 0) {
-      return { success: true, message: "User created successfully.", data: updateData };
+    // Consider the operation successful if we either:
+    // 1. Created a new document (upsertedCount > 0)
+    // 2. Modified an existing document (modifiedCount > 0)
+    // 3. Found the document but no changes were needed (matchedCount > 0)
+    if (result.upsertedCount > 0 || result.modifiedCount > 0 || result.matchedCount > 0) {
+      return { 
+        success: true, 
+        message: result.upsertedCount > 0 
+          ? "User created successfully."
+          : "User updated successfully.",
+        data: updateData 
+      };
     }
 
-    if (result.modifiedCount > 0) {
-      return { success: true, message: "User updated successfully.", data: updateData };
-    }
-
-    return createErrorResponse(400, "No changes were made.");
+    // Only return error if no document was found/matched at all
+    return createErrorResponse(404, "User not found.");
   } catch (error) {
     console.error("Error updating user data:", error);
     return createErrorResponse(500, "Failed to update user data.");
@@ -165,6 +172,7 @@ export async function POST(req: NextRequest) {
       submittedForms: {
         [form.title]: {
           Players: playerCount,
+          status: 'not_confirmed',
         },
       },
     };

@@ -2,21 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { post } from "@/app/utils/PostGetData";
 
 // Define the expected shape of the response inline
-type PostResponse = {
-  success: boolean;
-};
-
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("authToken")?.value;
 
   // Check if the user is trying to access the SignIn, SignUp, or Verification pages
   const isSignInPage = req.nextUrl.pathname === "/SignIn";
-  const isSignUpPage = req.nextUrl.pathname === "/SignUp";
-
 
   if (!token) {
     // If there's no token and the user is on a protected route, redirect to SignIn
-    if (!isSignInPage && !isSignUpPage ) {
+    if (!isSignInPage ) {
       return NextResponse.redirect(new URL("/SignIn", req.url), { status: 302 });
     }
     // Allow access to the SignIn, SignUp, or Verification page if unauthenticated
@@ -28,7 +22,7 @@ export async function middleware(req: NextRequest) {
 
   if (isValid) {
     // Redirect authenticated users from the SignIn, SignUp, or Verification page to the Dashboard
-    if (isSignInPage || isSignUpPage ) {
+    if (isSignInPage ) {
       return NextResponse.redirect(new URL("/dashboard", req.url), { status: 302 });
     }
     // Allow access to other routes if authenticated
@@ -52,13 +46,11 @@ async function validateToken(token: string): Promise<boolean> {
     const data = response.data;
     return data.success ?? false;
   }
-
   return false;
 }
-
 // Match protected routes and the SignIn, SignUp, and Verification pages
 export const config = {
 
-  matcher: ["/dashboard/:path*", "/SignIn", "/SignUp"], // Add SignUp and Verification to the matcher
+  matcher: ["/dashboard/:path*", "/SignIn"], // Add SignUp and Verification to the matcher
 
 };

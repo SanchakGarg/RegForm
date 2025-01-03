@@ -212,6 +212,7 @@ const PaymentForm = () => {
             <div className="flex items-center gap-25 justify-around"><FormLabel className=" font-bold">Select Sport</FormLabel>
             <FormLabel className="font-bold">Number of players</FormLabel></div>
 
+
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-4">
                 

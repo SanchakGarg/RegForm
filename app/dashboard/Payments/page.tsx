@@ -188,6 +188,7 @@ const PaymentForm = () => {
   const router = useRouter();
   const [showSportFields, setShowSportFields] = useState(false);
   const [paymentFormloading, setPaymentFormloading] = useState<boolean>(false);
+  const [resetForm,setResetForm]=useState<boolean>(false);
   
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(PaymentFormSchema),
@@ -277,9 +278,11 @@ const PaymentForm = () => {
         
         // Reset form and state
         resetFormAndState();
+        setResetForm(!resetForm);
+        
         
         // Redirect and refresh the page
-        router.push("/dashboard/Payments")
+        
       } else {
         setPaymentFormloading(false);
         toast({

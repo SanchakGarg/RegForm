@@ -181,7 +181,7 @@ if (!isDraft) {
       fields: fields // This already has the correct structure
     };
     
-    await sendConfirmationEmail(emailFormData);
+    await sendConfirmationEmail(emailFormData); 
   } catch (error) {
     // console.error("Failed to send confirmation email:", error);
     // Continue with the response even if email fails

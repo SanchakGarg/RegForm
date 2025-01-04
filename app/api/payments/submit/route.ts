@@ -6,6 +6,26 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
 import crypto from "crypto";
+import { sendPaymentConfirmationEmail } from "@/app/utils/mailer/PaymentEmail";
+
+interface SportPlayers {
+  sport: string;
+  players: number;  // Number of players
+}
+interface PaymentFormData {
+  name?:string,
+  email?:string,
+  paymentTypes: string[];  // Will contain max 2 strings
+  paymentMode: string;
+  sportsPlayers?: SportPlayers[];
+  amountInNumbers: number;
+  amountInWords: string;
+  payeeName: string;
+  transactionId: string;
+  paymentDate: Date;
+  paymentProof?: File;
+  remarks?: string;
+}
 interface PaymentData {
   paymentTypes: string[];
   paymentMode: string;
@@ -37,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get user data
-    const userResponse = await fetchUserData("email", email, ["_id"]);
+    const userResponse = await fetchUserData("email", email, ["_id","name"]);
     if (!userResponse.success || !userResponse.data?._id) {
       return NextResponse.json(
         { success: false, message: "Owner not found" },
@@ -99,7 +119,22 @@ export async function POST(req: NextRequest) {
     const { db } = await connectToDatabase();
     const paymentCollection: Collection = db.collection("payments");
     const result = await paymentCollection.insertOne(paymentData);
-
+    const formDataObj: PaymentFormData = {
+      name:userResponse.data?.name,
+      email:email,
+      paymentTypes: JSON.parse(formData.get("paymentTypes") as string), // Parse JSON if it's a serialized string
+      paymentMode: formData.get("paymentMode") as string,
+      sportsPlayers: JSON.parse(formData.get("sportsPlayers") as string), // Parse JSON if applicable
+      amountInNumbers: parseFloat(formData.get("amountInNumbers") as string), // Convert to number
+      amountInWords: formData.get("amountInWords") as string,
+      payeeName: formData.get("payeeName") as string,
+      transactionId: formData.get("transactionId") as string,
+      paymentDate: new Date(formData.get("paymentDate") as string), // Convert to Date
+      paymentProof: file || undefined, // Attach file if present
+      remarks: formData.get("remarks") as string || undefined, // Optional field
+    };
+    
+    await sendPaymentConfirmationEmail(formDataObj);
     return NextResponse.json(
       {
         success: true,

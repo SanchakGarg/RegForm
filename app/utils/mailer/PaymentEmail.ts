@@ -100,16 +100,26 @@ export async function sendPaymentConfirmationEmail(
         const sportsTable = formData.sportsPlayers && formData.sportsPlayers.length > 0 ? `
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         <tr>
-          <td colspan="2" style="padding: 10px; background-color: #f0f0f0;">
+          <td colspan="3" style="padding: 10px; background-color: #f0f0f0;">
             <strong>Sports Registration Details</strong>
           </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Sport</strong></td>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Players</strong></td>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Registration Fee</strong></td>
         </tr>
         ${formData.sportsPlayers.map(sportGroup => `
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd;"><strong>${sports[sportGroup.sport]}</strong></td>
             <td style="padding: 8px; border: 1px solid #ddd;">${sportGroup.players} Player${sportGroup.players > 1 ? 's' : ''}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">₹${(sportGroup.players * 800).toLocaleString()}</td>
           </tr>
         `).join('')}
+        <tr>
+          <td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong>Total Registration Fee:</strong></td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><strong>₹${formData.sportsPlayers.reduce((total, sport) => total + (sport.players * 800), 0).toLocaleString()}</strong></td>
+        </tr>
       </table>
     ` : '';
 
@@ -126,7 +136,7 @@ export async function sendPaymentConfirmationEmail(
         
         <p><strong>Note:</strong> Our team will review your payment details and send you a confirmation email once verified. Please allow up to 24-48 hours for the verification process.</p>
         
-        <p>If you have any questions or concerns, please contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a>or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a>.</p>
+        <p>If you have any questions or concerns, please contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a>.</p>
         
         <p style="margin-top: 30px;">Best regards,<br>Team Agneepath 6.0<br>Ashoka University</p>
         

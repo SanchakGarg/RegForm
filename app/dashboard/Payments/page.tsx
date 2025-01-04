@@ -101,7 +101,7 @@ const columns: ColumnDef<FormData>[] = [
     cell: ({ row }) =>
       row.original.sportsPlayers
         ? row.original.sportsPlayers
-          .map((item) => `${sports[item.sport]} - ${item.players}`)
+          .map((item) => `${sports[item.sport]} - ${item.players} Players`)
           .join(", ")
         : "No sports",
   },

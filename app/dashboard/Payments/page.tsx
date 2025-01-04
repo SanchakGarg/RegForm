@@ -47,7 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import { post } from "@/app/utils/PostGetData"
 import { sports } from '@/app/utils/forms/schema';
@@ -87,7 +87,7 @@ const FormSchema = z
 const PaymentFormSchema = z.object({
   paymentTypes: z.array(z.string()).min(1, { message: "At least one payment type is required." }),
   paymentMode: z.string().nonempty({ message: "Payment mode is required." }),
-  registrations: z
+  sportsPlayers: z
     .array(
       z.object({
         sport: z.string().nonempty({ message: "Sport is required." }),
@@ -118,13 +118,13 @@ const PaymentForm = () => {
     resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
       paymentTypes: [],
-      registrations: [],
+      sportsPlayers: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "registrations",
+    name: "sportsPlayers",
   });
 
   useEffect(() => {
@@ -144,9 +144,9 @@ const PaymentForm = () => {
       // Append payment mode
       formData.append("paymentMode", data.paymentMode);
 
-      // Append registrations if present
-      if (data.registrations && data.registrations.length > 0) {
-        formData.append("registrations", JSON.stringify(data.registrations));
+      // Append sportsPlayers if present
+      if (data.sportsPlayers && data.sportsPlayers.length > 0) {
+        formData.append("sportsPlayers", JSON.stringify(data.sportsPlayers));
       }
 
       // Append amounts
@@ -258,7 +258,7 @@ const PaymentForm = () => {
                         } else {
                           form.setValue("paymentTypes", current.filter(t => t !== "registration"));
                           setShowSportFields(false);
-                          form.setValue("registrations", []);
+                          form.setValue("sportsPlayers", []);
                         }
                       }}
                     />
@@ -308,7 +308,7 @@ const PaymentForm = () => {
               <div key={field.id} className="flex items-center gap-4">
                 <FormField
                   control={form.control}
-                  name={`registrations.${index}.sport`}
+                  name={`sportsPlayers.${index}.sport`}
                   render={({ field, fieldState }) => (
                     <FormItem className="flex-1">
                       <Select onValueChange={field.onChange} value={field.value}>
@@ -331,7 +331,7 @@ const PaymentForm = () => {
                 />
                 <FormField
                   control={form.control}
-                  name={`registrations.${index}.players`}
+                  name={`sportsPlayers.${index}.players`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <Input
@@ -518,12 +518,14 @@ const getAuthToken = (): string | null => {
 interface PaymentData {
   Accommodation: {
     needAccommodation: boolean;
+    cp?:number;
   };
   submittedForms: {
     [key: string]: {
       Players: number;
     };
   } | null;
+  
 }
 
 export default function Payments() {
@@ -541,8 +543,10 @@ export default function Payments() {
     Accommodation: { needAccommodation: false },
     submittedForms: null
   })
+  const [updatePrice,setUpdatePrice]=useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [accommodationPrice,setAccomodationPrice]=useState<number>(2100);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -566,7 +570,11 @@ export default function Payments() {
             cookies: token,
           }
         );
+        console.log(response.data);
         if (response.data?.success) {
+          if(response.data.data?.Accommodation.cp){
+            setAccomodationPrice(response.data.data?.Accommodation.cp);
+          }
           setPaymentData(
             response.data.data || {
               Accommodation: { needAccommodation: false },
@@ -706,7 +714,7 @@ export default function Payments() {
   const calculateAccommodationTotal = () => {
     if (!form.getValues("needAccommodation")) return 0
     const players = form.getValues("numberOfPlayers") || 0
-    return players * 2100
+    return players * accommodationPrice
 
   }
 
@@ -773,6 +781,7 @@ export default function Payments() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Accommodation Details</CardTitle>
+            <CardDescription>The accommodation price per player is ₹{accommodationPrice}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -814,9 +823,11 @@ export default function Payments() {
                             placeholder="number of players"
                             value={field.value || ""}
                             onChange={(e) =>
-                              field.onChange(
+
+                             {setUpdatePrice(!updatePrice);
+                               field.onChange(
                                 e.target.value ? parseInt(e.target.value) : 0
-                              )
+                             )}
                             }
                           />
                         </FormControl>

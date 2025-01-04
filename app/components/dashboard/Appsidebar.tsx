@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Home", url: "https://agneepath.co.in/", icon: Home, external: true }, // Added Home item
+  { title: "Home Page", url: "https://agneepath.co.in/", icon: Home, external: true }, // Added Home item
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Registration Form", url: "/dashboard/regForm", icon: BookText },
   { title: "Accommodation and Payments", url: "/dashboard/Payments", icon: CreditCard },

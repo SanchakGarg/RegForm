@@ -1,5 +1,7 @@
 import { getEmailFromToken } from "@/app/utils/forms/getEmail";
 import { fetchUserData } from "@/app/utils/GetUpdateUser";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Collection } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -14,8 +16,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userResponse = await fetchUserData("email", email, ["Accommodation", "submittedForms"]);
+    const userResponse = await fetchUserData("email", email, ["_id", "Accommodation", "submittedForms"]);
 
+    if (!userResponse.success || !userResponse.data?._id) {
+      return NextResponse.json(
+        { success: false, message: "Owner not found or invalid response" },
+        { status: 404 }
+      );
+    }
+    const ownerId = userResponse.data._id;
+    const { db } = await connectToDatabase();
+    // Safely access the _id property
+    const formCollection: Collection = db.collection("payments");
+
+    // Fetch specific fields (_id, title, updatedAt) for all documents matching ownerId
+    const matchingForms = await formCollection
+      .find({ ownerId }, { projection: { createdAt: 1, transactionId: 1, sportsPlayers: 1, paymentTypes: 1, amountInNumbers: 1, status: 1 } })
+      .toArray();
+    const { _id, ...userDataWithoutId } = userResponse.data;
 
     if (userResponse.success) {
       // console.log("User data retrieved successfully:", userResponse.data);
@@ -23,7 +41,8 @@ export async function POST(req: NextRequest) {
         {
           success: true,
           message: "User data retrieved successfully",
-          data: userResponse.data,
+          data: userDataWithoutId,
+          form: matchingForms
         },
         { status: 200 }
       );

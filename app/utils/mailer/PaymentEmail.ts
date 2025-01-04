@@ -16,6 +16,8 @@ interface PaymentFormData {
     amountInWords: string;
     payeeName: string;
     transactionId: string;
+    accommodationPeople?:number,
+    accommodationPrice?:number,
     paymentDate: Date;
     paymentProof?: File;
     remarks?: string;
@@ -122,6 +124,27 @@ export async function sendPaymentConfirmationEmail(
       </table>
     ` : '';
 
+        // Generate accommodation details table
+        const accommodationTable = formData.accommodationPeople && formData.accommodationPrice ? `
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr>
+          <td colspan="3" style="padding: 10px; background-color: #f0f0f0;">
+            <strong>Accommodation Details</strong>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Number of People</strong></td>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Price per Person</strong></td>
+          <td style="padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;"><strong>Total Amount</strong></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">${formData.accommodationPeople}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">₹${formData.accommodationPrice.toLocaleString()}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">₹${(formData.accommodationPeople * formData.accommodationPrice).toLocaleString()}</td>
+        </tr>
+      </table>
+    ` : '';
+
         const emailContent = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
         <h2 style="text-align: center; color: #ed810c;">Payment Confirmation - Agneepath 6.0</h2>
@@ -132,8 +155,9 @@ export async function sendPaymentConfirmationEmail(
         
         ${paymentDetailsTable}
         ${sportsTable}
+        ${accommodationTable}
         
-        <p><strong>Note:</strong> Our team will review your payment details and send you a confirmation email once verified. Please allow up to 24-48 hours for the verification process.</p>
+        <p><strong>Note:</strong> Our team will review your payment details and send you a confirmation email once verified. Please allow up to 48-72 hours for the verification process.</p>
         
         <p>If you have any questions or concerns, please contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a>.</p>
         
@@ -146,7 +170,7 @@ export async function sendPaymentConfirmationEmail(
         // Send email
         await transporter.sendMail({
             from: `"Payments" <${SMTP_USER}>`,
-            to: formData.email, // Send to admin email
+            to: formData.email,
             subject: `Payment Confirmation - Transaction ID: ${formData.transactionId}`,
             html: emailContent,
             attachments: [

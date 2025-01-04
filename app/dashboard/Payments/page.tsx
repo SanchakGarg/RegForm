@@ -252,6 +252,7 @@ const FormSchema = z
     };
   
     const onSubmit = async (data: PaymentFormValues) => {
+      console.log(data);
       setPaymentFormloading(true);
   
       try {
@@ -266,6 +267,7 @@ const FormSchema = z
   
         if (data.accommodationPeople) {
           formData.append("accommodationPeople", data.accommodationPeople.toString());
+          formData.append("accommodationPrice",accommodationPrice.toString()); 
         }
   
         formData.append("amountInNumbers", data.amountInNumbers.toString());
@@ -1096,7 +1098,7 @@ export default function Payments() {
         <Separator className="my-4" ref={paymentFormRef} />
         <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
         <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>
-        <PaymentForm />
+        <PaymentForm accommodationPrice={accommodationPrice} />
       </div>
     </div>
   )

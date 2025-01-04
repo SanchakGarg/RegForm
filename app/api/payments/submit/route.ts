@@ -13,6 +13,8 @@ interface SportPlayers {
   players: number;  // Number of players
 }
 interface PaymentFormData {
+  accommodationPrice?:number,
+  accommodationPeople?:number,
   name?:string,
   email?:string,
   paymentTypes: string[];  // Will contain max 2 strings
@@ -29,7 +31,9 @@ interface PaymentFormData {
 interface PaymentData {
   paymentTypes: string[];
   paymentMode: string;
-  sportsPlayers: [];  // Now properly typed as an array of Registration objects
+  sportsPlayers: []; 
+  accommodationPeople?:number; 
+  accommodationPrice?:number;// Now properly typed as an array of Registration objects
   amountInNumbers: number;
   amountInWords: string;
   payeeName: string;
@@ -103,12 +107,18 @@ export async function POST(req: NextRequest) {
       paymentDate: new Date(formData.get("paymentDate") as string),
       status: "In review",
       createdAt: new Date(),
+      
     };
 
     // Add optional fields
     const remarks = formData.get("remarks");
     if (remarks) {
       paymentData.remarks = remarks as string;
+    }
+    const acpeople = Number(formData.get("accommodationPeople"));
+    if (acpeople){
+      paymentData.accommodationPeople= Number(formData.get("accommodationPeople"))
+      paymentData.accommodationPrice= Number(formData.get("accommodationPrice"))
     }
 
     if (paymentProofFile) {
@@ -131,6 +141,8 @@ export async function POST(req: NextRequest) {
       transactionId: formData.get("transactionId") as string,
       paymentDate: new Date(formData.get("paymentDate") as string), // Convert to Date
       paymentProof: file || undefined, // Attach file if present
+      accommodationPeople:Number(formData.get("accommodationPeople")),
+      accommodationPrice:Number(formData.get("accommodationPrice")),
       remarks: formData.get("remarks") as string || undefined, // Optional field
     };
     

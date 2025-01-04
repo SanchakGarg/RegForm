@@ -301,12 +301,13 @@ const PaymentForm = () => {
             control={form.control}
             name="paymentTypes"
             render={({ field, fieldState }) => (
-              <FormItem className="flex flex-col gap-4">
+              <FormItem className="flex flex-col ">
                 <FormLabel className={cn(
                   "text-lg font-bold",
                   fieldState.error && "text-red-500"
                 )}>Payment Type</FormLabel>
-                <FormDescription>If you are paying for accommodation then please remember to fill accommodation details part above.</FormDescription>
+                <FormDescription className="mt-0">If you are paying for accommodation then please remember to fill accommodation details part above.</FormDescription>
+
                 <div className="flex gap-4">
 
                   <div className="flex items-center space-x-2">

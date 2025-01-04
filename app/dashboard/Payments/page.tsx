@@ -232,7 +232,9 @@ const PaymentForm = () => {
                   "text-lg font-bold",
                   fieldState.error && "text-red-500"
                 )}>Payment Type</FormLabel>
+                <FormDescription>If you are paying for accommodation then please remember to fill accommodation details part above.</FormDescription>
                 <div className="flex gap-4">
+                  
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       onCheckedChange={(checked) => {
@@ -432,6 +434,7 @@ const PaymentForm = () => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-bold">Payment Proof</FormLabel>
+              <FormDescription>Only images and pdf are allowed and you can only upload one file</FormDescription>
               <Input
                 type="file"
                 accept="image/*,application/pdf"

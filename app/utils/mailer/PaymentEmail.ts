@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { type NextApiResponse } from 'next';
 import { sports } from "../forms/schema";
 
 interface SportPlayers {

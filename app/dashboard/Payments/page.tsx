@@ -868,17 +868,17 @@ export default function Payments() {
   };
 
   return (
-    <div className="relative w-full overflow-x-hidden">
-      <div className="w-full max-w-full px-4 sm:px-6 pb-6">
+    <div className="w-full h-full relative">
+      <div className="w-full px-6 pb-6">
         <HeadingWithUnderline
           text="Accommodation and Payments"
           desktopSize="md:text-6xl"
           mobileSize="text-3xl sm:text-2xl"
         />
-        <div className="mt-10 space-y-8 pb-10 max-w-full">
+        <div className="mt-10 space-y-8 pb-10">
           <Button onClick={handleScroll}>Add Payment</Button>
   
-          <Card className="max-w-full">
+          <Card>
             <CardHeader>
               <HeadingWithUnderline
                 text="Amount to be Paid"
@@ -918,7 +918,7 @@ export default function Payments() {
             </CardContent>
           </Card>
   
-          <Card className="max-w-full">
+          <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Accommodation Details</CardTitle>
               <CardDescription>The accommodation price per player is ₹{accommodationPrice}</CardDescription>
@@ -989,7 +989,7 @@ export default function Payments() {
             </CardContent>
           </Card>
   
-          <Card className="bg-primary/5 max-w-full">
+          <Card className="bg-primary/5">
             <CardContent className="p-6">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-primary">Total Amount to be Paid</span>
@@ -999,7 +999,7 @@ export default function Payments() {
           </Card>
         </div>
   
-        <div className="mt-6 pb-8 overflow-auto max-w-full">
+        <div className="mt-6 pb-8 overflow-auto">
           {filledForms.length === 0 ? (
             <div></div>
           ) : (

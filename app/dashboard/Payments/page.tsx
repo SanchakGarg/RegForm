@@ -52,8 +52,7 @@ import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderlin
 import { post } from "@/app/utils/PostGetData"
 import { sports } from '@/app/utils/forms/schema';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-
-
+import { useRouter } from "next/navigation";
 
 
 const EmptyState = () => (
@@ -186,8 +185,10 @@ const PaymentFormSchema = z.object({
 type PaymentFormValues = z.infer<typeof PaymentFormSchema>;
 
 const PaymentForm = () => {
+  const router = useRouter();
   const [showSportFields, setShowSportFields] = useState(false);
-
+  const [paymentFormloading, setPaymentFormloading] = useState<boolean>(false);
+  
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
@@ -207,15 +208,21 @@ const PaymentForm = () => {
     }
   }, [showSportFields, fields.length, append]);
 
+  const resetFormAndState = () => {
+    form.reset();
+    setShowSportFields(false);
+    setPaymentFormloading(false);
+  };
+
   const onSubmit = async (data: PaymentFormValues) => {
+    setPaymentFormloading(true);
+    
     try {
       // Prepare form data
       const formData = new FormData();
 
       // Append payment types
       formData.append("paymentTypes", JSON.stringify(data.paymentTypes));
-
-      // Append payment mode
       formData.append("paymentMode", data.paymentMode);
 
       // Append sportsPlayers if present
@@ -223,18 +230,12 @@ const PaymentForm = () => {
         formData.append("sportsPlayers", JSON.stringify(data.sportsPlayers));
       }
 
-      // Append amounts
       formData.append("amountInNumbers", data.amountInNumbers.toString());
       formData.append("amountInWords", data.amountInWords);
-
-      // Append payee details
       formData.append("payeeName", data.payeeName);
       formData.append("transactionId", data.transactionId);
-
-      // Append payment date
       formData.append("paymentDate", data.paymentDate.toISOString());
 
-      // Append payment proof file if present
       if (data.paymentProof) {
         formData.append("paymentProof", data.paymentProof);
       }
@@ -245,12 +246,14 @@ const PaymentForm = () => {
       // Fetch token for authentication
       const token = getAuthToken();
       if (!token) {
-        return toast({
+        setPaymentFormloading(false);
+        toast({
           variant: "destructive",
           title: "Error",
           description: "Authentication token missing. Please log in.",
           className: styles["mobile-toast"],
         });
+        return;
       }
 
       // Send the request
@@ -271,11 +274,14 @@ const PaymentForm = () => {
           description: "Payment submitted successfully",
           className: styles["mobile-toast"],
         });
-
-        // Reset the form
-        form.reset();
-        setShowSportFields(false);
+        
+        // Reset form and state
+        resetFormAndState();
+        
+        // Redirect and refresh the page
+        router.push("/dashboard/Payments")
       } else {
+        setPaymentFormloading(false);
         toast({
           variant: "destructive",
           title: "Error",
@@ -284,6 +290,7 @@ const PaymentForm = () => {
         });
       }
     } catch (error) {
+      setPaymentFormloading(false);
       toast({
         variant: "destructive",
         title: "Error",
@@ -296,286 +303,295 @@ const PaymentForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="paymentTypes"
-            render={({ field, fieldState }) => (
-              <FormItem className="flex flex-col ">
-                <FormLabel className={cn(
-                  "text-lg font-bold",
-                  fieldState.error && "text-red-500"
-                )}>Payment Type</FormLabel>
-                <FormDescription className="mt-0">If you are paying for accommodation then please remember to fill accommodation details part above.</FormDescription>
+        {paymentFormloading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="paymentTypes"
+                render={({ field, fieldState }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className={cn(
+                      "text-lg font-bold",
+                      fieldState.error && "text-red-500"
+                    )}>Payment Type</FormLabel>
+                    <FormDescription className="mt-0">
+                      If you are paying for accommodation then please remember to fill accommodation details part above.
+                    </FormDescription>
 
-                <div className="flex gap-4">
+                    <div className="flex gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          onCheckedChange={(checked) => {
+                            const current = form.getValues("paymentTypes") || [];
+                            if (checked) {
+                              form.setValue("paymentTypes", [...current, "accommodation"]);
+                            } else {
+                              form.setValue("paymentTypes", current.filter(t => t !== "accommodation"));
+                            }
+                          }}
+                        />
+                        <span>Accommodation</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          onCheckedChange={(checked) => {
+                            const current = form.getValues("paymentTypes") || [];
+                            if (checked) {
+                              form.setValue("paymentTypes", [...current, "registration"]);
+                              setShowSportFields(true);
+                            } else {
+                              form.setValue("paymentTypes", current.filter(t => t !== "registration"));
+                              setShowSportFields(false);
+                              form.setValue("sportsPlayers", []);
+                            }
+                          }}
+                        />
+                        <span>Player Registration</span>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      onCheckedChange={(checked) => {
-                        const current = form.getValues("paymentTypes") || [];
-                        if (checked) {
-                          form.setValue("paymentTypes", [...current, "accommodation"]);
-                        } else {
-                          form.setValue("paymentTypes", current.filter(t => t !== "accommodation"));
-                        }
-                      }}
-                    />
-                    <span>Accommodation</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      onCheckedChange={(checked) => {
-                        const current = form.getValues("paymentTypes") || [];
-                        if (checked) {
-                          form.setValue("paymentTypes", [...current, "registration"]);
-                          setShowSportFields(true);
-                        } else {
-                          form.setValue("paymentTypes", current.filter(t => t !== "registration"));
-                          setShowSportFields(false);
-                          form.setValue("sportsPlayers", []);
-                        }
-                      }}
-                    />
-                    <span>Player Registration</span>
-                  </div>
+            <FormField
+              control={form.control}
+              name="paymentMode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Mode of Payment</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank">Bank Transfer</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {showSportFields && (
+              <div className="space-y-4">
+                <div>
+                  <FormLabel className="text-lg font-bold block">Sport Registration Details</FormLabel>
+                  <FormDescription>
+                    Please enter number of players for each sport you're paying registration fee for
+                  </FormDescription>
                 </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                <div className="flex items-center gap-25 justify-around">
+                  <FormLabel className="font-bold">Select Sport</FormLabel>
+                  <FormLabel className="font-bold">Number of players</FormLabel>
+                </div>
 
-        <FormField
-          control={form.control}
-          name="paymentMode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Mode of Payment</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
-                  <SelectItem value="cheque">Cheque</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {showSportFields && (
-          <div className="space-y-4">
-            <div>
-              <FormLabel className="text-lg font-bold block">Sport Registration Details</FormLabel>
-              <FormDescription>
-                Please enter number of players for each sport you're paying registration fee for
-              </FormDescription>
-            </div>
-            <div className="flex items-center gap-25 justify-around">
-              <FormLabel className="font-bold">Select Sport</FormLabel>
-              <FormLabel className="font-bold">Number of players</FormLabel>
-            </div>
-
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex items-center gap-4">
-                <FormField
-                  control={form.control}
-                  name={`sportsPlayers.${index}.sport`}
-                  render={({ field, fieldState }) => (
-                    <FormItem className="flex-1">
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className={cn(
-                          fieldState.error && "border-red-500"
-                        )}>
-                          <SelectValue placeholder="Choose a sport" />
-                        </SelectTrigger>
-                        <SelectContent className="overflow-y-scroll z-50">
-                          {Object.entries(sports).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`sportsPlayers.${index}.players`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <Input
-                        type="number"
-                        placeholder="Enter number"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        min={1}
-                        max={20}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-4">
+                    <FormField
+                      control={form.control}
+                      name={`sportsPlayers.${index}.sport`}
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex-1">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger className={cn(
+                              fieldState.error && "border-red-500"
+                            )}>
+                              <SelectValue placeholder="Choose a sport" />
+                            </SelectTrigger>
+                            <SelectContent className="overflow-y-scroll z-50">
+                              {Object.entries(sports).map(([key, value]) => (
+                                <SelectItem key={key} value={key}>
+                                  {value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`sportsPlayers.${index}.players`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Enter number"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            min={1}
+                            max={20}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className=""
+                      onClick={() => remove(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className=""
-                  onClick={() => remove(index)}
+                  className="bg-black text-white hover:bg-gray-800"
+                  onClick={() => append({ sport: "", players: 1 })}
                 >
-                  <X className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Sport
                 </Button>
               </div>
-            ))}
-            <Button
-              type="button"
-              className="bg-black text-white hover:bg-gray-800"
-              onClick={() => append({ sport: "", players: 1 })}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Sport
-            </Button>
-          </div>
-        )}
+            )}
 
-        <FormField
-          control={form.control}
-          name="amountInNumbers"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel className={cn(
-                "text-lg font-bold",
-                fieldState.error && "text-red-500"
-              )}>Total Amount in Numbers</FormLabel>
-              <Input
-                type="number"
-                placeholder="Enter amount in numbers"
-                {...field}
-                onChange={e => {
-                  const value = parseFloat(e.target.value);
-                  field.onChange(isNaN(value) ? 0 : value);
-                }}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Rest of the form fields remain the same */}
-        <FormField
-          control={form.control}
-          name="amountInWords"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Total Amount in Words</FormLabel>
-              <Input placeholder="Enter amount in words" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="payeeName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Name of Payee</FormLabel>
-              <Input placeholder="Enter payee name" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="transactionId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Transaction ID/Cheque Number</FormLabel>
-              <Input placeholder="Enter transaction ID or cheque number" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="paymentProof"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Payment Proof</FormLabel>
-              <FormDescription>Only images and pdf are allowed and you can only upload one file</FormDescription>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => field.onChange(e.target.files?.[0])}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="paymentDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel className="font-bold text-lg">Date of Payment</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
+            <FormField
+              control={form.control}
+              name="amountInNumbers"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className={cn(
+                    "text-lg font-bold",
+                    fieldState.error && "text-red-500"
+                  )}>Total Amount in Numbers</FormLabel>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount in numbers"
+                    {...field}
+                    onChange={e => {
+                      const value = parseFloat(e.target.value);
+                      field.onChange(isNaN(value) ? 0 : value);
+                    }}
                   />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="remarks"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-bold">Remarks</FormLabel>
-              <Input placeholder="Enter any comments if you have" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
-          Submit Payment
-        </Button>
+            <FormField
+              control={form.control}
+              name="amountInWords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Total Amount in Words</FormLabel>
+                  <Input placeholder="Enter amount in words" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="payeeName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Name of Payee</FormLabel>
+                  <Input placeholder="Enter payee name" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="transactionId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Transaction ID/Cheque Number</FormLabel>
+                  <Input placeholder="Enter transaction ID or cheque number" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentProof"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Payment Proof</FormLabel>
+                  <FormDescription>Only images and pdf are allowed and you can only upload one file</FormDescription>
+                  <Input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => field.onChange(e.target.files?.[0])}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="font-bold text-lg">Date of Payment</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="remarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Remarks</FormLabel>
+                  <Input placeholder="Enter any comments if you have" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
+              Submit Payment
+            </Button>
+          </>
+        )}
       </form>
     </Form>
   );
@@ -613,7 +629,6 @@ export default function Payments() {
     }
   };
   const [showInput, setShowInput] = useState(false);
-
   const [paymentData, setPaymentData] = useState<PaymentData>({
     Accommodation: { needAccommodation: false },
     submittedForms: null
@@ -810,7 +825,7 @@ export default function Payments() {
     });
 
     return (
-      <div className="rounded-lg shadow-lg max-w-full mx-3">
+      <div className="rounded-lg shadow-lg max-w-full">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -853,156 +868,157 @@ export default function Payments() {
   };
 
   return (
-    <div className="h-screen pr-6 pb-6">
-      <HeadingWithUnderline
-        text="Accommodation and Payments"
-        desktopSize="md:text-6xl"
-        mobileSize="text-3xl sm:text-2xl"
-      />
-      <div className="mt-10 space-y-8 pb-10">
-        <Button onClick={handleScroll}>Add Payment</Button>
-
-
-        <Card>
-          <CardHeader>
-            <HeadingWithUnderline
-              text="Amount to be Paid"
-              desktopSize="md:text-4xl"
-              mobileSize="text-2xl sm:text-xl"
-            />
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              {!paymentData?.submittedForms || Object.keys(paymentData.submittedForms).length === 0 ? (
-                <EmptyState />
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold">Sport</TableHead>
-                      <TableHead className="text-right font-bold">Players</TableHead>
-                      <TableHead className="text-right font-bold">Registration Fee</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Object.entries(paymentData.submittedForms).map(([sport, data]) => (
-                      <TableRow key={sport}>
-                        <TableCell className="font-medium">{sports[sport]}</TableCell>
-                        <TableCell className="text-right">{data.Players}</TableCell>
-                        <TableCell className="text-right">₹{data.Players * 800}</TableCell>
+    <div className="relative w-full overflow-x-hidden">
+      <div className="w-full max-w-full px-4 sm:px-6 pb-6">
+        <HeadingWithUnderline
+          text="Accommodation and Payments"
+          desktopSize="md:text-6xl"
+          mobileSize="text-3xl sm:text-2xl"
+        />
+        <div className="mt-10 space-y-8 pb-10 max-w-full">
+          <Button onClick={handleScroll}>Add Payment</Button>
+  
+          <Card className="max-w-full">
+            <CardHeader>
+              <HeadingWithUnderline
+                text="Amount to be Paid"
+                desktopSize="md:text-4xl"
+                mobileSize="text-2xl sm:text-xl"
+              />
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                {!paymentData?.submittedForms || Object.keys(paymentData.submittedForms).length === 0 ? (
+                  <EmptyState />
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-bold">Sport</TableHead>
+                        <TableHead className="text-right font-bold">Players</TableHead>
+                        <TableHead className="text-right font-bold">Registration Fee</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-muted/50">
-                      <TableCell colSpan={2} className="font-bold">Total Registration Fee</TableCell>
-                      <TableCell className="text-right font-bold">₹{calculateSportsTotal()}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              )}
-
-            </div>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Accommodation Details</CardTitle>
-            <CardDescription>The accommodation price per player is ₹{accommodationPrice}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="needAccommodation"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-3">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            const isChecked = checked === true
-                            field.onChange(isChecked)
-                            setShowInput(isChecked)
-                            if (!isChecked) {
-                              form.setValue("numberOfPlayers", undefined);
-                              form.reset({ needAccommodation: false })
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel>Do you need accommodation?</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                {showInput && (
+                    </TableHeader>
+                    <TableBody>
+                      {Object.entries(paymentData.submittedForms).map(([sport, data]) => (
+                        <TableRow key={sport}>
+                          <TableCell className="font-medium">{sports[sport]}</TableCell>
+                          <TableCell className="text-right">{data.Players}</TableCell>
+                          <TableCell className="text-right">₹{data.Players * 800}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50">
+                        <TableCell colSpan={2} className="font-bold">Total Registration Fee</TableCell>
+                        <TableCell className="text-right font-bold">₹{calculateSportsTotal()}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+  
+          <Card className="max-w-full">
+            <CardHeader>
+              <CardTitle className="text-2xl">Accommodation Details</CardTitle>
+              <CardDescription>The accommodation price per player is ₹{accommodationPrice}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="numberOfPlayers"
+                    name="needAccommodation"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">Number of players</FormLabel>
+                      <FormItem className="flex items-center space-x-3">
                         <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="number of players"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              setUpdatePrice(!updatePrice);
-                              field.onChange(
-                                e.target.value ? parseInt(e.target.value) : 0
-                              )
-                            }
-                            }
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              const isChecked = checked === true
+                              field.onChange(isChecked)
+                              setShowInput(isChecked)
+                              if (!isChecked) {
+                                form.setValue("numberOfPlayers", undefined);
+                                form.reset({ needAccommodation: false })
+                              }
+                            }}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormLabel>Do you need accommodation?</FormLabel>
                       </FormItem>
                     )}
                   />
-                )}
-
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Accommodation Cost</span>
-                    <span className="font-bold">₹{calculateAccommodationTotal()}</span>
+  
+                  {showInput && (
+                    <FormField
+                      control={form.control}
+                      name="numberOfPlayers"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-bold">Number of players</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="number of players"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                setUpdatePrice(!updatePrice);
+                                field.onChange(
+                                  e.target.value ? parseInt(e.target.value) : 0
+                                )
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+  
+                  <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Accommodation Cost</span>
+                      <span className="font-bold">₹{calculateAccommodationTotal()}</span>
+                    </div>
                   </div>
-                </div>
-
-                <Button type="submit">Save</Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-
-        <Card className="bg-primary/5">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold text-primary">Total Amount to be Paid</span>
-              <span className="text-2xl font-bold text-primary">₹{overallTotal}</span>
+  
+                  <Button type="submit">Save</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+  
+          <Card className="bg-primary/5 max-w-full">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center">
+                <span className="text-2xl font-bold text-primary">Total Amount to be Paid</span>
+                <span className="text-2xl font-bold text-primary">₹{overallTotal}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+  
+        <div className="mt-6 pb-8 overflow-auto max-w-full">
+          {filledForms.length === 0 ? (
+            <div></div>
+          ) : (
+            <div>
+              <Separator className="my-4" ref={paymentFormRef} />
+              <CardTitle className="pb-1">Submitted payments</CardTitle>
+              <CardDescription className="pb-5">
+                Below is the info of submitted forms. if status is in review then our team will verify the payment and get back to you
+              </CardDescription>
+              <DataTable columns={columns} data={filledForms} />
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
+  
+        <Separator className="my-4" ref={paymentFormRef} />
+        <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
+        <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>
+        <PaymentForm />
       </div>
-
-      <div className="w-full mt-6 pb-8 overflow-auto">
-        {filledForms.length === 0 ? (
-          <div></div>
-        ) : (
-          <div>
-            <Separator className="my-4" ref={paymentFormRef} />
-            <CardTitle className="pb-1">Submitted payments</CardTitle>
-            <CardDescription className="pb-5">Below is the info of submitted forms. if status is in review then our team will verify the payment and get back to you</CardDescription>
-            <DataTable columns={columns} data={filledForms} /></div>
-        )}
-      </div>
-      <Separator className="my-4" ref={paymentFormRef} />
-      <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
-      <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>
-      <PaymentForm />
     </div>
   )
 }

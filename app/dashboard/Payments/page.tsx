@@ -51,15 +51,89 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import HeadingWithUnderline from "@/app/components/dashboard/headingWithUnderline"
 import { post } from "@/app/utils/PostGetData"
 import { sports } from '@/app/utils/forms/schema';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+
+
+
+
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
     <Medal className="w-16 h-16 text-gray-400 mb-4" />
     <h3 className="text-xl font-bold text-gray-700 mb-2">No Sports Registered</h3>
     <p className="text-gray-500 text-center max-w-md">
-      You haven't registered for any sports yet. Register for a sport to start your athletic journey!
+      You haven't registered for any sports yet.
     </p>
   </div>
 );
+
+export type FormData = {
+  createdAt: string;
+  sportsPlayers: { sport: string; players: string }[];
+  paymentTypes: string[];
+  amountInNumbers: number;
+  status: string;
+};
+
+const StatusCell: React.FC<{ status: string }> = ({ status }) => {
+  const isVerified = status === "verified";
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={`w-2 h-2 rounded-full ${isVerified ? "bg-green-500" : "bg-yellow-500"}`}
+      ></span>
+      <span className={isVerified ? "text-green-500" : "text-yellow-500"}>{isVerified ? "Verified" : "In Review"}</span>
+    </div>
+  );
+};
+
+const columns: ColumnDef<FormData>[] = [
+  {
+    accessorKey: "transactionId",
+    header: "Transaction ID",
+  },
+  {
+    accessorKey: "paymentTypes",
+    header: "Payment Type",
+    cell: ({ row }) => row.original.paymentTypes.join(", "),
+  },
+  {
+    accessorKey: "sportsPlayers",
+    header: "Sports & Players",
+    cell: ({ row }) =>
+      row.original.sportsPlayers
+        ? row.original.sportsPlayers
+          .map((item) => `${sports[item.sport]} - ${item.players}`)
+          .join(", ")
+        : "No sports",
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Form Submission",
+    cell: ({ row }) => {
+      const date = new Date(row.original.createdAt);
+      return date.toLocaleString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      });
+    },
+  },
+  {
+    accessorKey: "amountInNumbers",
+    header: "Amount",
+    cell: ({ row }) => `₹${row.original.amountInNumbers}`,
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => <StatusCell status={row.original.status} />,
+  },
+];
+
+
+
 
 
 const FormSchema = z
@@ -96,7 +170,7 @@ const PaymentFormSchema = z.object({
     )
     .optional(),
   amountInNumbers: z
-    .number().min(1, { message: "Amount must be greater than zero" }),
+    .number().min(800, { message: "Amount must be atleast 800 rupees" }),
   amountInWords: z.string().nonempty({ message: "Amount in words is required." }),
   payeeName: z.string().nonempty({ message: "Payee name is required." }),
   transactionId: z.string().nonempty({ message: "Transaction ID is required." }),
@@ -234,7 +308,7 @@ const PaymentForm = () => {
                 )}>Payment Type</FormLabel>
                 <FormDescription>If you are paying for accommodation then please remember to fill accommodation details part above.</FormDescription>
                 <div className="flex gap-4">
-                  
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       onCheckedChange={(checked) => {
@@ -518,14 +592,14 @@ const getAuthToken = (): string | null => {
 interface PaymentData {
   Accommodation: {
     needAccommodation: boolean;
-    cp?:number;
+    cp?: number;
   };
   submittedForms: {
     [key: string]: {
       Players: number;
     };
   } | null;
-  
+
 }
 
 export default function Payments() {
@@ -543,10 +617,11 @@ export default function Payments() {
     Accommodation: { needAccommodation: false },
     submittedForms: null
   })
-  const [updatePrice,setUpdatePrice]=useState<boolean>(false);
+  const [filledForms, setFilledForms] = useState<FormData[]>([]);
+  const [updatePrice, setUpdatePrice] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [accommodationPrice,setAccomodationPrice]=useState<number>(2100);
+  const [accommodationPrice, setAccomodationPrice] = useState<number>(2100);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -563,16 +638,15 @@ export default function Payments() {
     const fetchPaymentData = async () => {
       try {
         const token = getAuthToken();
-        const response = await post<{ success: boolean; data?: PaymentData }>(
+        const response = await post<{ success: boolean; data?: PaymentData, form: FormData[] }>(
 
           `/api/payments`,
           {
             cookies: token,
           }
         );
-        console.log(response.data);
         if (response.data?.success) {
-          if(response.data.data?.Accommodation.cp){
+          if (response.data.data?.Accommodation.cp) {
             setAccomodationPrice(response.data.data?.Accommodation.cp);
           }
           setPaymentData(
@@ -581,6 +655,9 @@ export default function Payments() {
               submittedForms: null,
             }
           );
+          setFilledForms(response.data.form);
+          console.log();
+          console.log(response.data.form);
 
           setShowInput(response.data.data?.Accommodation.needAccommodation || false);
 
@@ -724,6 +801,55 @@ export default function Payments() {
     <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
   </div>
   if (error) return <div>Error: {error}</div>
+  const DataTable = ({ columns, data }: { columns: ColumnDef<FormData>[]; data: FormData[] }) => {
+    const table = useReactTable({
+      data,
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+    });
+
+    return (
+      <div className="rounded-lg shadow-lg max-w-full mx-3">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="bg-black hover:bg-black-200 group">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="text-white text-center group-hover:bg-black-200 transition-colors duration-200"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="text-center">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
 
   return (
     <div className="h-screen pr-6 pb-6">
@@ -822,12 +948,12 @@ export default function Payments() {
                             type="number"
                             placeholder="number of players"
                             value={field.value || ""}
-                            onChange={(e) =>
-
-                             {setUpdatePrice(!updatePrice);
-                               field.onChange(
+                            onChange={(e) => {
+                              setUpdatePrice(!updatePrice);
+                              field.onChange(
                                 e.target.value ? parseInt(e.target.value) : 0
-                             )}
+                              )
+                            }
                             }
                           />
                         </FormControl>
@@ -859,6 +985,18 @@ export default function Payments() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="w-full mt-6 pb-8 overflow-auto">
+        {filledForms.length === 0 ? (
+          <div></div>
+        ) : (
+          <div>
+            <Separator className="my-4" ref={paymentFormRef} />
+            <CardTitle className="pb-1">Submitted payments</CardTitle>
+            <CardDescription className="pb-5">Below is the info of submitted forms. if status is in review then our team will verify the payment and get back to you</CardDescription>
+            <DataTable columns={columns} data={filledForms} /></div>
+        )}
       </div>
       <Separator className="my-4" ref={paymentFormRef} />
       <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>

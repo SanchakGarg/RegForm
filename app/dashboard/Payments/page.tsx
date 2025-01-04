@@ -188,8 +188,8 @@ const PaymentForm = () => {
   const router = useRouter();
   const [showSportFields, setShowSportFields] = useState(false);
   const [paymentFormloading, setPaymentFormloading] = useState<boolean>(false);
-  const [resetForm,setResetForm]=useState<boolean>(false);
-  
+  const [resetForm, setResetForm] = useState<boolean>(false);
+
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
@@ -217,7 +217,7 @@ const PaymentForm = () => {
 
   const onSubmit = async (data: PaymentFormValues) => {
     setPaymentFormloading(true);
-    
+
     try {
       // Prepare form data
       const formData = new FormData();
@@ -275,14 +275,14 @@ const PaymentForm = () => {
           description: "Payment submitted successfully",
           className: styles["mobile-toast"],
         });
-        
+
         // Reset form and state
         resetFormAndState();
         setResetForm(!resetForm);
-        
-        
+
+
         // Redirect and refresh the page
-        
+
       } else {
         setPaymentFormloading(false);
         toast({
@@ -391,9 +391,10 @@ const PaymentForm = () => {
                     Please enter number of players for each sport you're paying registration fee for
                   </FormDescription>
                 </div>
-                <div className="flex items-center gap-25 justify-around">
-                  <FormLabel className="font-bold">Select Sport</FormLabel>
-                  <FormLabel className="font-bold">Number of players</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="font-bold flex-1">Select Sport</FormLabel>
+                  <FormLabel className="font-bold flex-1">Number of players</FormLabel>
+                  <FormLabel className="font-bold flex-1">Registration Fee(₹)</FormLabel>
                 </div>
 
                 {fields.map((field, index) => (
@@ -438,15 +439,19 @@ const PaymentForm = () => {
                         </FormItem>
                       )}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className=""
-                      onClick={() => remove(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex-1 flex items-center">
+                      <div className="bg-gray-100 px-4 py-2 rounded-md w-full">
+                        ₹{(form.watch(`sportsPlayers.${index}.players`) * 800 || 0).toLocaleString()}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 <Button
@@ -489,6 +494,7 @@ const PaymentForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg font-bold">Total Amount in Words</FormLabel>
+                  <FormDescription>Add "only" at the end</FormDescription>
                   <Input placeholder="Enter amount in words" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -525,7 +531,7 @@ const PaymentForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg font-bold">Payment Proof</FormLabel>
-                  <FormDescription>Only images and pdf are allowed and you can only upload one file</FormDescription>
+                  <FormDescription>File Type: PDF or Image, Maximum 1</FormDescription>
                   <Input
                     type="file"
                     accept="image/*,application/pdf"
@@ -541,7 +547,7 @@ const PaymentForm = () => {
               name="paymentDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="font-bold text-lg">Date of Payment</FormLabel>
+                  <FormLabel className="font-bold text-lg">Date of Payment/ Cheque Deposit</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -880,7 +886,7 @@ export default function Payments() {
         />
         <div className="mt-10 space-y-8 pb-10">
           <Button onClick={handleScroll}>Add Payment</Button>
-  
+
           <Card>
             <CardHeader>
               <HeadingWithUnderline
@@ -920,11 +926,11 @@ export default function Payments() {
               </div>
             </CardContent>
           </Card>
-  
+
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Accommodation Details</CardTitle>
-              <CardDescription>The accommodation price per player is ₹{accommodationPrice}</CardDescription>
+              <CardDescription>Accommodation cost per player for the entire event is ₹{accommodationPrice}</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -952,7 +958,7 @@ export default function Payments() {
                       </FormItem>
                     )}
                   />
-  
+
                   {showInput && (
                     <FormField
                       control={form.control}
@@ -978,20 +984,20 @@ export default function Payments() {
                       )}
                     />
                   )}
-  
+
                   <div className="mt-4 p-4 bg-muted rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Accommodation Cost</span>
                       <span className="font-bold">₹{calculateAccommodationTotal()}</span>
                     </div>
                   </div>
-  
+
                   <Button type="submit">Save</Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
-  
+
           <Card className="bg-primary/5">
             <CardContent className="p-6">
               <div className="flex justify-between items-center">
@@ -1001,7 +1007,7 @@ export default function Payments() {
             </CardContent>
           </Card>
         </div>
-  
+
         <div className="mt-6 pb-8 overflow-auto">
           {filledForms.length === 0 ? (
             <div></div>
@@ -1016,7 +1022,7 @@ export default function Payments() {
             </div>
           )}
         </div>
-  
+
         <Separator className="my-4" ref={paymentFormRef} />
         <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
         <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>

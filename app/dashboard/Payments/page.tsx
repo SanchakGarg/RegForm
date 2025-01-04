@@ -85,19 +85,30 @@ const FormSchema = z
   )
 
 const PaymentFormSchema = z.object({
-  paymentTypes: z.array(z.string()),
-  paymentMode: z.string(),
-  registrations: z.array(z.object({
-    sport: z.string(),
-    players: z.number()
-  })).min(1),
-  amountInNumbers: z.number(),
-  amountInWords: z.string(),
-  payeeName: z.string(),
-  transactionId: z.string(),
-  paymentProof: z.any(),
-  paymentDate: z.date()
+  paymentTypes: z.array(z.string()).min(1, { message: "At least one payment type is required." }),
+  paymentMode: z.string().nonempty({ message: "Payment mode is required." }),
+  registrations: z
+    .array(
+      z.object({
+        sport: z.string().nonempty({ message: "Sport is required." }),
+        players: z.number().positive({ message: "Players must be a positive number." }),
+      })
+    )
+    .optional(),
+  amountInNumbers: z
+    .number().min(1, { message: "Amount must be greater than zero" }),
+  amountInWords: z.string().nonempty({ message: "Amount in words is required." }),
+  payeeName: z.string().nonempty({ message: "Payee name is required." }),
+  transactionId: z.string().nonempty({ message: "Transaction ID is required." }),
+  paymentProof: z.any().refine((val) => val !== null && val !== undefined, {
+    message: "Payment proof is required.",
+  }),
+  paymentDate: z
+    .date()
+    .refine((date) => !isNaN(date.getTime()), { message: "A valid payment date is required." }),
+  remarks: z.string().optional(),
 });
+
 type PaymentFormValues = z.infer<typeof PaymentFormSchema>;
 
 const PaymentForm = () => {
@@ -107,42 +118,125 @@ const PaymentForm = () => {
     resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
       paymentTypes: [],
-      paymentMode: "",
       registrations: [],
-      amountInNumbers: 0,
-      amountInWords: "",
-      payeeName: "",
-      transactionId: "",
-      paymentProof: undefined,
-      paymentDate: new Date()
-    }
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "registrations"
+    name: "registrations",
   });
 
-  const onSubmit = (data: PaymentFormValues) => {
-    console.log(data);
+  useEffect(() => {
+    if (showSportFields && fields.length === 0) {
+      append({ sport: "", players: 1 });
+    }
+  }, [showSportFields, fields.length, append]);
+
+  const onSubmit = async (data: PaymentFormValues) => {
+    try {
+      // Prepare form data
+      const formData = new FormData();
+
+      // Append payment types
+      formData.append("paymentTypes", JSON.stringify(data.paymentTypes));
+
+      // Append payment mode
+      formData.append("paymentMode", data.paymentMode);
+
+      // Append registrations if present
+      if (data.registrations && data.registrations.length > 0) {
+        formData.append("registrations", JSON.stringify(data.registrations));
+      }
+
+      // Append amounts
+      formData.append("amountInNumbers", data.amountInNumbers.toString());
+      formData.append("amountInWords", data.amountInWords);
+
+      // Append payee details
+      formData.append("payeeName", data.payeeName);
+      formData.append("transactionId", data.transactionId);
+
+      // Append payment date
+      formData.append("paymentDate", data.paymentDate.toISOString());
+
+      // Append payment proof file if present
+      if (data.paymentProof) {
+        formData.append("paymentProof", data.paymentProof);
+      }
+      if (data.remarks) {
+        formData.append("remarks", data.remarks);
+      }
+
+      // Fetch token for authentication
+      const token = getAuthToken();
+      if (!token) {
+        return toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Authentication token missing. Please log in.",
+          className: styles["mobile-toast"],
+        });
+      }
+
+      // Send the request
+      const response = await fetch(`/api/payments/submit`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      // Handle response
+      if (response.ok && result.success) {
+        toast({
+          title: "Success",
+          description: "Payment submitted successfully",
+          className: styles["mobile-toast"],
+        });
+
+        // Reset the form
+        form.reset();
+        setShowSportFields(false);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to submit payment. Please try again.",
+          className: styles["mobile-toast"],
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        className: styles["mobile-toast"],
+      });
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-6">
-        {/* Rest of the form content remains the same but with bold labels */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
         <div className="space-y-4">
-          <FormLabel className="text-lg font-bold">Payment Type</FormLabel>
-          <div className="flex gap-4">
-            <FormField
-              control={form.control}
-              name="paymentTypes"
-              render={() => (
-                <FormItem className="flex gap-4">
+          <FormField
+            control={form.control}
+            name="paymentTypes"
+            render={({ field, fieldState }) => (
+              <FormItem className="flex flex-col gap-4">
+                <FormLabel className={cn(
+                  "text-lg font-bold",
+                  fieldState.error && "text-red-500"
+                )}>Payment Type</FormLabel>
+                <div className="flex gap-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       onCheckedChange={(checked) => {
-                        const current = form.getValues("paymentTypes");
+                        const current = form.getValues("paymentTypes") || [];
                         if (checked) {
                           form.setValue("paymentTypes", [...current, "accommodation"]);
                         } else {
@@ -155,7 +249,7 @@ const PaymentForm = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       onCheckedChange={(checked) => {
-                        const current = form.getValues("paymentTypes");
+                        const current = form.getValues("paymentTypes") || [];
                         if (checked) {
                           form.setValue("paymentTypes", [...current, "registration"]);
                           setShowSportFields(true);
@@ -168,10 +262,11 @@ const PaymentForm = () => {
                     />
                     <span>Player Registration</span>
                   </div>
-                </FormItem>
-              )}
-            />
-          </div>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <FormField
@@ -189,6 +284,7 @@ const PaymentForm = () => {
                   <SelectItem value="cheque">Cheque</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -201,31 +297,33 @@ const PaymentForm = () => {
                 Please enter number of players for each sport you're paying registration fee for
               </FormDescription>
             </div>
-            <div className="flex items-center gap-25 justify-around"><FormLabel className=" font-bold">Select Sport</FormLabel>
-              <FormLabel className="font-bold">Number of players</FormLabel></div>
-
+            <div className="flex items-center gap-25 justify-around">
+              <FormLabel className="font-bold">Select Sport</FormLabel>
+              <FormLabel className="font-bold">Number of players</FormLabel>
+            </div>
 
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-4">
-
                 <FormField
                   control={form.control}
                   name={`registrations.${index}.sport`}
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem className="flex-1">
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
+                        <SelectTrigger className={cn(
+                          fieldState.error && "border-red-500"
+                        )}>
                           <SelectValue placeholder="Choose a sport" />
                         </SelectTrigger>
-                        {/* Use Portal explicitly */}
-                        <SelectContent className=" overflow-y-scroll z-50">
-                            {Object.entries(sports).map(([key, value]) => (
-                              <SelectItem key={key} value={key}>
-                                {value}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                        <SelectContent className="overflow-y-scroll z-50">
+                          {Object.entries(sports).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>
+                              {value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -234,7 +332,6 @@ const PaymentForm = () => {
                   name={`registrations.${index}.players`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
-
                       <Input
                         type="number"
                         placeholder="Enter number"
@@ -243,6 +340,7 @@ const PaymentForm = () => {
                         min={1}
                         max={20}
                       />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -271,20 +369,27 @@ const PaymentForm = () => {
         <FormField
           control={form.control}
           name="amountInNumbers"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel className="text-lg font-bold">Total Amount in Numbers</FormLabel>
+              <FormLabel className={cn(
+                "text-lg font-bold",
+                fieldState.error && "text-red-500"
+              )}>Total Amount in Numbers</FormLabel>
               <Input
                 type="number"
                 placeholder="Enter amount in numbers"
                 {...field}
-                onChange={e => field.onChange(parseFloat(e.target.value))}
+                onChange={e => {
+                  const value = parseFloat(e.target.value);
+                  field.onChange(isNaN(value) ? 0 : value);
+                }}
               />
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Rest of the form fields remain the same */}
         <FormField
           control={form.control}
           name="amountInWords"
@@ -374,6 +479,17 @@ const PaymentForm = () => {
                   />
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="remarks"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-bold">Remarks</FormLabel>
+              <Input placeholder="Enter any comments if you have" {...field} />
               <FormMessage />
             </FormItem>
           )}
@@ -599,14 +715,14 @@ export default function Payments() {
   if (error) return <div>Error: {error}</div>
 
   return (
-    <div className="h-screen p-6">
+    <div className="h-screen pr-6 pb-6">
       <HeadingWithUnderline
         text="Accommodation and Payments"
         desktopSize="md:text-6xl"
         mobileSize="text-3xl sm:text-2xl"
       />
       <div className="mt-10 space-y-8 pb-10">
-      <Button onClick={handleScroll}>Add Payment</Button>
+        <Button onClick={handleScroll}>Add Payment</Button>
 
 
         <Card>
@@ -730,10 +846,10 @@ export default function Payments() {
           </CardContent>
         </Card>
       </div>
-      <Separator className="my-4" ref={paymentFormRef}/>
+      <Separator className="my-4" ref={paymentFormRef} />
       <h2 className="mt-5 text-2xl font-semibold text-gray-800">Payment Form</h2>
       <p className="text-sm text-gray-600 mb-4">Enter your payment details below</p>
       <PaymentForm />
-            </div>
+    </div>
   )
 }

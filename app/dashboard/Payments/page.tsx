@@ -157,384 +157,384 @@ const FormSchema = z
     }
   )
 
-  const PaymentFormSchema = z.object({
-    paymentTypes: z.array(z.string()).min(1, { message: "At least one payment type is required." }),
-    paymentMode: z.string().nonempty({ message: "Payment mode is required." }),
-    sportsPlayers: z
-      .array(
-        z.object({
-          sport: z.string().nonempty({ message: "Sport is required." }),
-          players: z.number().positive({ message: "Players must be a positive number." }),
-        })
-      )
-      .optional(),
-    accommodationPeople: z
-      .number()
-      .min(1, { message: "Number of people must be at least 1" })
-      .optional(),
-    amountInNumbers: z
-      .number().min(800, { message: "Amount must be atleast 800 rupees" }),
-    amountInWords: z.string().nonempty({ message: "Amount in words is required." }),
-    payeeName: z.string().nonempty({ message: "Payee name is required." }),
-    transactionId: z.string().nonempty({ message: "Transaction ID is required." }),
-    paymentProof: z.any().refine((val) => val !== null && val !== undefined, {
-      message: "Payment proof is required.",
-    }),
-    paymentDate: z
-      .date()
-      .refine((date) => !isNaN(date.getTime()), { message: "A valid payment date is required." }),
-    remarks: z.string().optional(),
+const PaymentFormSchema = z.object({
+  paymentTypes: z.array(z.string()).min(1, { message: "At least one payment type is required." }),
+  paymentMode: z.string().nonempty({ message: "Payment mode is required." }),
+  sportsPlayers: z
+    .array(
+      z.object({
+        sport: z.string().nonempty({ message: "Sport is required." }),
+        players: z.number().positive({ message: "Players must be a positive number." }),
+      })
+    )
+    .optional(),
+  accommodationPeople: z
+    .number()
+    .min(1, { message: "Number of people must be at least 1" })
+    .optional(),
+  amountInNumbers: z
+    .number().min(800, { message: "Amount must be atleast 800 rupees" }),
+  amountInWords: z.string().nonempty({ message: "Amount in words is required." }),
+  payeeName: z.string().nonempty({ message: "Payee name is required." }),
+  transactionId: z.string().nonempty({ message: "Transaction ID is required." }),
+  paymentProof: z.any().refine((val) => val !== null && val !== undefined, {
+    message: "Payment proof is required.",
+  }),
+  paymentDate: z
+    .date()
+    .refine((date) => !isNaN(date.getTime()), { message: "A valid payment date is required." }),
+  remarks: z.string().optional(),
+});
+
+type PaymentFormValues = z.infer<typeof PaymentFormSchema>;
+
+interface PaymentFormProps {
+  accommodationPrice?: number;
+}
+
+const PaymentForm: React.FC<PaymentFormProps> = ({ accommodationPrice = 2100 }) => {
+  const router = useRouter();
+  const [showSportFields, setShowSportFields] = useState(false);
+  const [showAccommodationFields, setShowAccommodationFields] = useState(false);
+  const [paymentFormloading, setPaymentFormloading] = useState<boolean>(false);
+  const [resetForm, setResetForm] = useState<boolean>(false);
+
+  const form = useForm<PaymentFormValues>({
+    resolver: zodResolver(PaymentFormSchema),
+    defaultValues: {
+      paymentTypes: [],
+      sportsPlayers: [],
+      accommodationPeople: undefined,
+    },
   });
-  
-  type PaymentFormValues = z.infer<typeof PaymentFormSchema>;
-  
-  interface PaymentFormProps {
-    accommodationPrice?: number;
-  }
-  
-  const PaymentForm: React.FC<PaymentFormProps> = ({ accommodationPrice = 2100 }) => {
-    const router = useRouter();
-    const [showSportFields, setShowSportFields] = useState(false);
-    const [showAccommodationFields, setShowAccommodationFields] = useState(false);
-    const [paymentFormloading, setPaymentFormloading] = useState<boolean>(false);
-    const [resetForm, setResetForm] = useState<boolean>(false);
-  
-    const form = useForm<PaymentFormValues>({
-      resolver: zodResolver(PaymentFormSchema),
-      defaultValues: {
-        paymentTypes: [],
-        sportsPlayers: [],
-        accommodationPeople: undefined,
-      },
-    });
-  
-    const { fields, append, remove } = useFieldArray({
-      control: form.control,
-      name: "sportsPlayers",
-    });
-  
-    useEffect(() => {
-      if (showSportFields && fields.length === 0) {
-        append({ sport: "", players: 1 });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "sportsPlayers",
+  });
+
+  useEffect(() => {
+    if (showSportFields && fields.length === 0) {
+      append({ sport: "", players: 1 });
+    }
+  }, [showSportFields, fields.length, append]);
+
+  // Calculate total amount
+  const calculateTotalAmount = () => {
+    let total = 0;
+
+    // Calculate sports registration total
+    const sportsPlayers = form.watch("sportsPlayers");
+    if (sportsPlayers) {
+      total += sportsPlayers.reduce((sum, sport) => sum + (sport.players * 800), 0);
+    }
+
+    // Add accommodation total if selected
+    const accommodationPeople = form.watch("accommodationPeople");
+    if (showAccommodationFields && accommodationPeople) {
+      total += accommodationPeople * accommodationPrice;
+    }
+
+    return total;
+  };
+
+  // Watch for changes that affect total amount
+  const totalAmount = calculateTotalAmount();
+  useEffect(() => {
+    // form.setValue("amountInNumbers", totalAmount);
+  }, [totalAmount, form]);
+
+  const resetFormAndState = () => {
+    form.reset();
+    setShowSportFields(false);
+    setShowAccommodationFields(false);
+    setPaymentFormloading(false);
+  };
+
+  const onSubmit = async (data: PaymentFormValues) => {
+    console.log(data);
+    setPaymentFormloading(true);
+
+    try {
+      const formData = new FormData();
+
+      formData.append("paymentTypes", JSON.stringify(data.paymentTypes));
+      formData.append("paymentMode", data.paymentMode);
+
+      if (data.sportsPlayers && data.sportsPlayers.length > 0) {
+        formData.append("sportsPlayers", JSON.stringify(data.sportsPlayers));
       }
-    }, [showSportFields, fields.length, append]);
-  
-    // Calculate total amount
-    const calculateTotalAmount = () => {
-      let total = 0;
-      
-      // Calculate sports registration total
-      const sportsPlayers = form.watch("sportsPlayers");
-      if (sportsPlayers) {
-        total += sportsPlayers.reduce((sum, sport) => sum + (sport.players * 800), 0);
+
+      if (data.accommodationPeople) {
+        formData.append("accommodationPeople", data.accommodationPeople.toString());
+        formData.append("accommodationPrice", accommodationPrice.toString());
       }
-      
-      // Add accommodation total if selected
-      const accommodationPeople = form.watch("accommodationPeople");
-      if (showAccommodationFields && accommodationPeople) {
-        total += accommodationPeople * accommodationPrice;
+
+      formData.append("amountInNumbers", data.amountInNumbers.toString());
+      formData.append("amountInWords", data.amountInWords);
+      formData.append("payeeName", data.payeeName);
+      formData.append("transactionId", data.transactionId);
+      formData.append("paymentDate", data.paymentDate.toISOString());
+
+      if (data.paymentProof) {
+        formData.append("paymentProof", data.paymentProof);
       }
-      
-      return total;
-    };
-  
-    // Watch for changes that affect total amount
-    const totalAmount = calculateTotalAmount();
-    useEffect(() => {
-      // form.setValue("amountInNumbers", totalAmount);
-    }, [totalAmount, form]);
-  
-    const resetFormAndState = () => {
-      form.reset();
-      setShowSportFields(false);
-      setShowAccommodationFields(false);
-      setPaymentFormloading(false);
-    };
-  
-    const onSubmit = async (data: PaymentFormValues) => {
-      console.log(data);
-      setPaymentFormloading(true);
-  
-      try {
-        const formData = new FormData();
-  
-        formData.append("paymentTypes", JSON.stringify(data.paymentTypes));
-        formData.append("paymentMode", data.paymentMode);
-  
-        if (data.sportsPlayers && data.sportsPlayers.length > 0) {
-          formData.append("sportsPlayers", JSON.stringify(data.sportsPlayers));
-        }
-  
-        if (data.accommodationPeople) {
-          formData.append("accommodationPeople", data.accommodationPeople.toString());
-          formData.append("accommodationPrice",accommodationPrice.toString()); 
-        }
-  
-        formData.append("amountInNumbers", data.amountInNumbers.toString());
-        formData.append("amountInWords", data.amountInWords);
-        formData.append("payeeName", data.payeeName);
-        formData.append("transactionId", data.transactionId);
-        formData.append("paymentDate", data.paymentDate.toISOString());
-  
-        if (data.paymentProof) {
-          formData.append("paymentProof", data.paymentProof);
-        }
-        if (data.remarks) {
-          formData.append("remarks", data.remarks);
-        }
-  
-        const token = getAuthToken();
-        if (!token) {
-          setPaymentFormloading(false);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Authentication token missing. Please log in.",
-            className: styles["mobile-toast"],
-          });
-          return;
-        }
-  
-        const response = await fetch(`/api/payments/submit`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-  
-        const result = await response.json();
-  
-        if (response.ok && result.success) {
-          toast({
-            title: "Success",
-            description: "Payment submitted successfully",
-            className: styles["mobile-toast"],
-          });
-  
-          resetFormAndState();
-          setResetForm(!resetForm);
-        } else {
-          setPaymentFormloading(false);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: result.message || "Failed to submit payment. Please try again.",
-            className: styles["mobile-toast"],
-          });
-        }
-      } catch (error) {
+      if (data.remarks) {
+        formData.append("remarks", data.remarks);
+      }
+
+      const token = getAuthToken();
+      if (!token) {
         setPaymentFormloading(false);
         toast({
           variant: "destructive",
           title: "Error",
-          description: error instanceof Error ? error.message : "An unexpected error occurred.",
+          description: "Authentication token missing. Please log in.",
+          className: styles["mobile-toast"],
+        });
+        return;
+      }
+
+      const response = await fetch(`/api/payments/submit`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast({
+          title: "Success",
+          description: "Payment submitted successfully",
+          className: styles["mobile-toast"],
+        });
+
+        resetFormAndState();
+        setResetForm(!resetForm);
+      } else {
+        setPaymentFormloading(false);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to submit payment. Please try again.",
           className: styles["mobile-toast"],
         });
       }
-    };
-  
-    return (
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
-          {paymentFormloading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="paymentTypes"
-                  render={({ field, fieldState }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className={cn(
-                        "text-lg font-bold",
-                        fieldState.error && "text-red-500"
-                      )}>Payment Type</FormLabel>
-                      <FormDescription className="mt-0">
-                        Select all the payment types you want to make
-                      </FormDescription>
-  
-                      <div className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            onCheckedChange={(checked) => {
-                              const current = form.getValues("paymentTypes") || [];
-                              if (checked) {
-                                form.setValue("paymentTypes", [...current, "accommodation"]);
-                                setShowAccommodationFields(true);
-                              } else {
-                                form.setValue("paymentTypes", current.filter(t => t !== "accommodation"));
-                                setShowAccommodationFields(false);
-                                form.setValue("accommodationPeople", undefined);
-                              }
-                            }}
-                          />
-                          <span>Accommodation</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            onCheckedChange={(checked) => {
-                              const current = form.getValues("paymentTypes") || [];
-                              if (checked) {
-                                form.setValue("paymentTypes", [...current, "registration"]);
-                                setShowSportFields(true);
-                              } else {
-                                form.setValue("paymentTypes", current.filter(t => t !== "registration"));
-                                setShowSportFields(false);
-                                form.setValue("sportsPlayers", []);
-                              }
-                            }}
-                          />
-                          <span>Player Registration</span>
-                        </div>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-  
-              
-  
-              {showAccommodationFields && (
-                <div className="space-y-4">
-                  <div>
-                    <FormLabel className="text-lg font-bold block">Accommodation Details</FormLabel>
-                    <FormDescription>
-                      Enter the number of people requiring accommodation
+    } catch (error) {
+      setPaymentFormloading(false);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        className: styles["mobile-toast"],
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
+        {paymentFormloading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="paymentTypes"
+                render={({ field, fieldState }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className={cn(
+                      "text-lg font-bold",
+                      fieldState.error && "text-red-500"
+                    )}>Payment Type</FormLabel>
+                    <FormDescription className="mt-0">
+                      Select all the payment types you want to make
                     </FormDescription>
+
+                    <div className="flex gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          onCheckedChange={(checked) => {
+                            const current = form.getValues("paymentTypes") || [];
+                            if (checked) {
+                              form.setValue("paymentTypes", [...current, "accommodation"]);
+                              setShowAccommodationFields(true);
+                            } else {
+                              form.setValue("paymentTypes", current.filter(t => t !== "accommodation"));
+                              setShowAccommodationFields(false);
+                              form.setValue("accommodationPeople", undefined);
+                            }
+                          }}
+                        />
+                        <span>Accommodation</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          onCheckedChange={(checked) => {
+                            const current = form.getValues("paymentTypes") || [];
+                            if (checked) {
+                              form.setValue("paymentTypes", [...current, "registration"]);
+                              setShowSportFields(true);
+                            } else {
+                              form.setValue("paymentTypes", current.filter(t => t !== "registration"));
+                              setShowSportFields(false);
+                              form.setValue("sportsPlayers", []);
+                            }
+                          }}
+                        />
+                        <span>Player Registration</span>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+
+
+            {showAccommodationFields && (
+              <div className="space-y-4">
+                <div>
+                  <FormLabel className="text-lg font-bold block">Accommodation Details</FormLabel>
+                  <FormDescription>
+                    Enter the number of people requiring accommodation
+                  </FormDescription>
+                </div>
+                <div className="flex items-center gap-4">
+                  <FormField
+                    control={form.control}
+                    name="accommodationPeople"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Input
+                          type="number"
+                          placeholder="Number of people"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          min={1}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex-1">
+                    <div className="bg-gray-100 px-4 py-2 rounded-md">
+                      ₹{((form.watch("accommodationPeople") || 0) * accommodationPrice).toLocaleString()}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                </div>
+              </div>
+            )}
+
+            {showSportFields && (
+              <div className="space-y-4">
+                <div>
+                  <FormLabel className="text-lg font-bold block">Sport Registration Details</FormLabel>
+                  <FormDescription>
+                    Please enter number of players for each sport you're paying registration fee for
+                  </FormDescription>
+                </div>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="font-bold flex-1">Select Sport</FormLabel>
+                  <FormLabel className="font-bold flex-1">Number of players</FormLabel>
+                  <FormLabel className="font-bold flex-1">Registration Fee(₹)</FormLabel>
+                </div>
+
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-4">
                     <FormField
                       control={form.control}
-                      name="accommodationPeople"
+                      name={`sportsPlayers.${index}.sport`}
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex-1">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger className={cn(
+                              fieldState.error && "border-red-500"
+                            )}>
+                              <SelectValue placeholder="Choose a sport" />
+                            </SelectTrigger>
+                            <SelectContent className="overflow-y-scroll z-50">
+                              {Object.entries(sports).map(([key, value]) => (
+                                <SelectItem key={key} value={key}>
+                                  {value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`sportsPlayers.${index}.players`}
                       render={({ field }) => (
                         <FormItem className="flex-1">
                           <Input
                             type="number"
-                            placeholder="Number of people"
+                            placeholder="Enter number"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
                             min={1}
+                            max={20}
                           />
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <div className="flex-1">
-                      <div className="bg-gray-100 px-4 py-2 rounded-md">
-                        ₹{((form.watch("accommodationPeople") || 0) * accommodationPrice).toLocaleString()}
+                    <div className="flex-1 flex items-center">
+                      <div className="bg-gray-100 px-4 py-2 rounded-md w-full">
+                        ₹{(form.watch(`sportsPlayers.${index}.players`) * 800 || 0).toLocaleString()}
                       </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                </div>
-              )}
-  
-              {showSportFields && (
-                <div className="space-y-4">
-                  <div>
-                    <FormLabel className="text-lg font-bold block">Sport Registration Details</FormLabel>
-                    <FormDescription>
-                      Please enter number of players for each sport you're paying registration fee for
-                    </FormDescription>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <FormLabel className="font-bold flex-1">Select Sport</FormLabel>
-                    <FormLabel className="font-bold flex-1">Number of players</FormLabel>
-                    <FormLabel className="font-bold flex-1">Registration Fee(₹)</FormLabel>
-                  </div>
-  
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-center gap-4">
-                      <FormField
-                        control={form.control}
-                        name={`sportsPlayers.${index}.sport`}
-                        render={({ field, fieldState }) => (
-                          <FormItem className="flex-1">
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <SelectTrigger className={cn(
-                                fieldState.error && "border-red-500"
-                              )}>
-                                <SelectValue placeholder="Choose a sport" />
-                              </SelectTrigger>
-                              <SelectContent className="overflow-y-scroll z-50">
-                                {Object.entries(sports).map(([key, value]) => (
-                                  <SelectItem key={key} value={key}>
-                                    {value}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`sportsPlayers.${index}.players`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <Input
-                              type="number"
-                              placeholder="Enter number"
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value))}
-                              min={1}
-                              max={20}
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex-1 flex items-center">
-                        <div className="bg-gray-100 px-4 py-2 rounded-md w-full">
-                          ₹{(form.watch(`sportsPlayers.${index}.players`) * 800 || 0).toLocaleString()}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => remove(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    className="bg-black text-white hover:bg-gray-800"
-                    onClick={() => append({ sport: "", players: 1 })}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Sport
-                  </Button>
-                </div>
-              )}
+                ))}
+                <Button
+                  type="button"
+                  className="bg-black text-white hover:bg-gray-800"
+                  onClick={() => append({ sport: "", players: 1 })}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Sport
+                </Button>
+              </div>
+            )}
             <FormField
-                control={form.control}
-                name="paymentMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg font-bold">Mode of Payment</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bank">Bank Transfer</SelectItem>
-                        <SelectItem value="cheque">Cheque</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              control={form.control}
+              name="paymentMode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-bold">Mode of Payment</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank">Bank Transfer</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-<FormField
+            <FormField
               control={form.control}
               name="amountInNumbers"
               render={({ field, fieldState }) => (
@@ -956,6 +956,30 @@ export default function Payments() {
           desktopSize="md:text-6xl"
           mobileSize="text-3xl sm:text-2xl"
         />
+        <div className="w-full mt-6 px-4">
+          <h2 className="text-xl font-semibold mb-4">Important Information</h2>
+          <div className="space-y-4 ml-4 mb-6">
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">1</span>
+              <p className="text-gray-700">Submit your payment details by clicking the <code>Add Payment</code> button below or scroll at the bottom of this page.</p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">2</span>
+              <p className="text-gray-700">After submitting payment details, you'll receive a confirmation email with a copy of your submission.</p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">3</span>
+              <p className="text-gray-700">you can view your auto calculated registration fee below based on your submitted forms. To calculate your accommodation price you can fill accommodation details section.</p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">4</span>
+              <p className="text-gray-700">For any queries contact at <a href="mailto:agneepath@ashoka.edu.in" className="text-blue-600 hover:underline">agneepath@ashoka.edu.in</a></p>
+            </div>
+          </div>
+        </div>
         <div className="mt-10 space-y-8 pb-10">
           <Button onClick={handleScroll}>Add Payment</Button>
 

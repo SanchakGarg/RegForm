@@ -101,22 +101,26 @@ async function sendConfirmationEmail(formData: FormData) {
         });
     }
 
-    const emailContent = `
+ const emailContent = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
       <h2 style="text-align: center; color: #ed810c;">Registration Confirmation - ${sports[formData.title]}</h2>
       
       <p>Dear ${formData.name},</p>
       
       <p>We are pleased to inform you that you have successfully registered for Agneepath 6.0, hosted at Ashoka University. We are excited to have you join us for the upcoming competition in ${sports[formData.title]}, representing your institution, ${formData.universityName}.</p>
-      <p style="font-weight: bold; color: #666;">Your application is currently under review by our team. You will receive a separate email once your registration is confirmed.</p>
+      
+      <p style="font-weight: bold; color: #666;">Your application is currently under review by our team. Please note that your registration will only be confirmed after the payment of registration fees. Once you complete the payment, you will receive a separate confirmation email.</p>
 
-      <p>Here is a copy of datails that you submitted:</p>
+      <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        To complete your registration, please visit the <a href="register.agneepath.co.in/dashboard/Payments" style="color: #ed810c; text-decoration: none;">Accommodation and Payments</a> page to pay your registration fees and arrange accommodation if needed.
+      </p>
+
+      <p>Here is a copy of details that you submitted:</p>
       
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         ${coachTableRows}
         ${playerTableRows}
       </table>
-      
       
       <p style="margin-top: 20px;">If you have any questions or need to update your information, please feel free to contact us at <a href="mailto:agneepath@ashoka.edu.in" style="color: #ed810c; text-decoration: none;">agneepath@ashoka.edu.in</a> or you can also make a support request by going to the <a href="register.agneepath.co.in" style="color: #ed810c; text-decoration: none;">dashboard</a>.</p>
       

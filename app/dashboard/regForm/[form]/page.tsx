@@ -12,7 +12,6 @@ import ReactMarkdown from "react-markdown";
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { post } from "@/app/utils/PostGetData";
-import {ArrowLeft} from "lucide-react";
 import {
   Drawer,
   DrawerClose,
@@ -24,7 +23,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 const getAuthToken = (): string | null => {
   const cookies = document.cookie.split("; ");
   const authToken = cookies.find((cookie) => cookie.startsWith("authToken="));

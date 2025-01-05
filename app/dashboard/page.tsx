@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Users, Medal } from 'lucide-react';
+import Link from 'next/link';
 import HeadingWithUnderline from '../components/dashboard/headingWithUnderline';
 import { sports } from '../utils/forms/schema';
 import { useRouter } from 'next/navigation';
@@ -68,7 +69,7 @@ const EmptyState = () => (
     <Medal className="w-16 h-16 text-gray-400 mb-4" />
     <h3 className="text-xl font-bold text-gray-700 mb-2">No Sports Registered</h3>
     <p className="text-gray-500 text-center max-w-md">
-      You haven't registered for any sports yet. Register for a sport to start your athletic journey!<br></br> you can register for a sport by going to Registration form page from side bar or clicking on this <a href="/dashboard/regForm" className='text-blue-600'>link</a>
+      You haven't registered for any sports yet. Register for a sport to start your athletic journey!<br></br> you can register for a sport by going to Registration form page from side bar or clicking on this <Link href="/dashboard/regForm" className='text-blue-600'>link</Link>
     </p>
   </div>
 );

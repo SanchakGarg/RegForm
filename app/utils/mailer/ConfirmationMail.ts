@@ -34,8 +34,8 @@ function formatFieldName(key: string): string {
 
     // Split by camelCase, underscore, or space and capitalize each word
     return key
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .split(/[_\s]+/) // Split by underscore or space
+        .replace(/([A-Z])/g, ' $1')
+        .split(/[_\s]+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ')
         .trim();
@@ -112,7 +112,11 @@ async function sendConfirmationEmail(formData: FormData) {
       <p style="font-weight: bold; color: #666;">Your application is currently under review by our team. Please note that your registration will only be confirmed after the payment of registration fees. Once you complete the payment, you will receive a separate confirmation email.</p>
 
       <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        To complete your registration, please visit the <a href="register.agneepath.co.in/dashboard/Payments" style="color: #ed810c; text-decoration: none;">Accommodation and Payments</a> page to pay your registration fees and arrange accommodation if needed.
+        To complete your registration:
+        <ol style="margin-top: 10px;">
+          <li>Please find the attached PDF containing our bank details for payment.</li>
+          <li>Visit the <a href="register.agneepath.co.in/dashboard/Payments" style="color: #ed810c; text-decoration: none;">Accommodation and Payments</a> page to submit your payment confirmation and arrange accommodation if needed.</li>
+        </ol>
       </p>
 
       <p>Here is a copy of details that you submitted:</p>
@@ -136,6 +140,11 @@ async function sendConfirmationEmail(formData: FormData) {
             path: `${process.env.LOGO}`,
             cid: "unique-image-cid",
             encoding: "base64"
+        },
+        {
+            filename: "BankDetails.pdf",
+            path: `${process.env.BANK_DETAILS_PDF}`,
+            contentType: 'application/pdf'
         }
     ];
 
@@ -154,7 +163,6 @@ async function sendConfirmationEmail(formData: FormData) {
             from: `Registation <SMTP_USER>`,
             to: email,
             subject: `Thank you for registering for Agneepath 6.0`,
-            
             headers: {
                 "X-Gm-NoSave": "1",
             },

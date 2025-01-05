@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Fetch user data
     const result = await fetchUserData("email", email, ["email", "password", "name"]);
     if (!result.success) {
-      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
+      return NextResponse.json({ success: false, message: "Password or Email is incorrect" }, { status: 404 });
     }
 
     const user = result.data;
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Compare hashed password
     const isValidPassword = await compareHash(password, user.password);
     if (!isValidPassword) {
-      return NextResponse.json({ success: false, message: "Invalid password" }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Password or Email is incorrect" }, { status: 401 });
     }
 
     // Generate JWT

@@ -957,29 +957,56 @@ export default function Payments() {
           mobileSize="text-3xl sm:text-2xl"
         />
         <div className="w-full mt-6 px-4">
-          <h2 className="text-xl font-semibold mb-4">Important Information</h2>
-          <div className="space-y-4 ml-4 mb-6">
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">1</span>
-              <p className="text-gray-700">Submit your payment details by clicking the <code>Add Payment</code> button below or scroll at the bottom of this page.</p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">2</span>
-              <p className="text-gray-700">After submitting payment details, you'll receive a confirmation email with a copy of your submission.</p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">3</span>
-              <p className="text-gray-700">you can view your auto calculated registration fee below based on your submitted forms. To calculate your accommodation price you can fill accommodation details section.</p>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">4</span>
-              <p className="text-gray-700">For any queries contact at <a href="mailto:agneepath@ashoka.edu.in" className="text-blue-600 hover:underline">agneepath@ashoka.edu.in</a></p>
-            </div>
-          </div>
+      <h2 className="text-xl font-semibold mb-4">Important Information</h2>
+      
+      <div className="mb-6">
+        <h3 className="text-lg font-medium mb-3">Bank Details</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full mb-6 border-collapse bg-white shadow-sm rounded-lg">
+            <tbody className="divide-y divide-gray-200">
+              <tr>
+                <td className="py-3 px-4 font-medium bg-gray-50">Account Name</td>
+                <td className="py-3 px-4">Ashoka University Events Collection</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-medium bg-gray-50">Account Number</td>
+                <td className="py-3 px-4">50200008952959</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-medium bg-gray-50">IFSC Code</td>
+                <td className="py-3 px-4">HDFC0003433</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-medium bg-gray-50">Account Type</td>
+                <td className="py-3 px-4">Current</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      <div className="space-y-4 ml-4">
+        <div className="flex items-start gap-3">
+          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">1</span>
+          <p className="text-gray-700">Submit your payment details by clicking the <code>Add Payment</code> button below or scroll at the bottom of this page.</p>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">2</span>
+          <p className="text-gray-700">After submitting payment details, you'll receive a confirmation email with a copy of your submission.</p>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">3</span>
+          <p className="text-gray-700">You can view your auto calculated registration fee below based on your submitted forms. To calculate your accommodation price you can fill accommodation details section.</p>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="flex-shrink-0 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-sm">4</span>
+          <p className="text-gray-700">For any queries contact at <a href="mailto:agneepath@ashoka.edu.in" className="text-blue-600 hover:underline">agneepath@ashoka.edu.in</a></p>
+        </div>
+      </div>
+    </div>
         <div className="mt-10 space-y-8 pb-10">
           <Button onClick={handleScroll}>Add Payment</Button>
 

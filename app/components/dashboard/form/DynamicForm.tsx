@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Link } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -587,7 +587,18 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
       <form onSubmit={form.handleSubmit(onSubmit)} 
       className="sm:w-2/3 space-y-6 mx-auto bg-white rounded-xl  sm:p-8  sm:mt-8"
       >
-      <div className="flex justify-end gap-4 mt-6 ">
+        
+      <div className="flex justify-between   gap-4 mt-6 ">
+      <div className="ml-4">
+                 <a 
+                      href="/dashboard/regForm" 
+                      className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <ArrowLeft className="w-5 h-5 mr-2" />
+                      <span>Go Back</span>
+                    </a>     
+                  </div>  
+          <div className=" gap-3 flex">
           <Button
             onClick={handleSaveDraftClick}
 
@@ -615,6 +626,7 @@ const RenderForm: React.FC<{ schema: ZodObject<ZodRawShape>, draftSchema: ZodObj
               "Submit"
             )}
           </Button>
+          </div>
         </div>
         {memoizedFormFields}
         <div className="flex justify-end gap-4 mt-6 pb-6">

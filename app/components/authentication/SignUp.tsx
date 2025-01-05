@@ -91,7 +91,7 @@ export function SignUp() {
               
 
             } else if (error) {
-              setError(error?.error || "Something went wrong.");
+              setError(error?.message || "Something went wrong.");
             }
         } catch (err) {
             setError("Failed to connect to the server. Please try again.");

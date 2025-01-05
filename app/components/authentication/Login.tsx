@@ -21,6 +21,7 @@ import { encrypt } from "@/app/utils/encryption";
 interface LoginApiResponse {
     token?: string;
     error?: string;
+    message?:string;
     success?: boolean;
     emailverif?:boolean;
 }
@@ -70,7 +71,8 @@ export function Login() {
 
         try {
             // Make the API call to check if the email is verified and to authenticate
-            const { data, error } = await post<LoginApiResponse>("/api/auth/login", { emaile: email,passworde:password });
+            const { data, error  } = await post<LoginApiResponse>("/api/auth/login", { emaile: email,passworde:password });
+            // console.log(error.message);
             if (data) {
                 if (data.success && data.emailverif == false) {
                     // If email is not verified, route to verification page
@@ -89,7 +91,8 @@ export function Login() {
                     setError(data.error || "Something went wrong.");
                 }
             } else {
-                setError(error?.error || "Something went wrong.");
+                console.log(data);
+                setError(error?.message || "Something went wrong.");
             }
         } catch (e) {
             setError("Failed to connect to the server. Please try again.");

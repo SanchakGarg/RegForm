@@ -3,8 +3,8 @@ import {MongoClient } from "mongodb";
 // Pull connection string from environment
 const uri = process.env.MONGODB_URI || "";
 const options = {
-  tls: true,
-  ssl:true // Use TLS for modern MongoDB drivers and servers
+  //tls: true,
+  //ssl:true // Use TLS for modern MongoDB drivers and servers
 };
 
 let client: MongoClient;

@@ -60,6 +60,5 @@ async function validateToken(token: string): Promise<boolean> {
 export const config = {
   matcher: [
     "/dashboard/:path*", // Protect all Dashboard routes
-    "/SignIn",           // Add SignIn for redirection logic
   ],
 };

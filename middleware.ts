@@ -37,6 +37,7 @@ async function validateToken(token: string): Promise<boolean> {
   try {
     const response = await post<{ success: boolean }>(`${process.env.ROOT_URL}api/auth/middleware`, { tokene: token });
 
+
     if (response.error) {
 // console.error("Error during token validation:", response.error);
 

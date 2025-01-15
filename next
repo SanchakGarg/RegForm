@@ -1,0 +1,26 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  // Enable static file serving from CDN
+  assetPrefix: process.env.NODE_ENV === 'production' 
+    ? 'https://agneepath.co.in' 
+    : '',
+  // If you're using images, you'll need this
+  images: {
+    domains: ['agneepath.co.in'],
+    // Optional: configure image loader
+    loader: 'default',
+    path: '/_next/image'
+  },
+  // TypeScript configuration
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: false,
+  },
+}
+
+module.exports = nextConfig;

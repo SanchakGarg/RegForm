@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  reg-form:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7001:7001" # Map container port 3000 to host port 3000
+    restart: always # Ensure the container restarts automatically
+    volumes:
+      - .:/app # Mount the current directory into the container
+      - /app/node_modules # Prevent overwriting `node_modules` by the local volume
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: development # Or "development" for local dev

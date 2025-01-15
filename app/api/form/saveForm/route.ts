@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
 if (!isDraft) {
   try {
     const emailFormData = {
+      email:email,
       _id: formId,
       ownerId: ownerId.toString(),
       name:userResponse.data.name, // Convert ObjectId to string
@@ -180,7 +181,7 @@ if (!isDraft) {
       status: "submitted",
       fields: fields // This already has the correct structure
     };
-    
+    console.log(emailFormData);
     await sendConfirmationEmail(emailFormData); 
   } catch (error) {
     // console.error("Failed to send confirmation email:", error);

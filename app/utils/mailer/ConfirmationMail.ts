@@ -14,6 +14,7 @@ interface PlayerField {
 }
 
 interface FormData {
+  email:string,
     _id: string;
     ownerId: string;
     title: string;
@@ -149,27 +150,19 @@ async function sendConfirmationEmail(formData: FormData) {
     ];
 
     // Get all unique participant emails
-    const participantEmails = new Set<string>();
-    formData.fields.playerFields?.forEach(player => {
-        if (player.email) participantEmails.add(player.email);
-    });
-    if (formData.fields.coachFields?.email) {
-        participantEmails.add(formData.fields.coachFields.email);
-    }
-
+   
     // Send email to all participants
-    for (const email of participantEmails) {
-        await transporter.sendMail({
-            from: `Registation <SMTP_USER>`,
-            to: email,
-            subject: `Thank you for registering for Agneepath 6.0`,
-            headers: {
-                "X-Gm-NoSave": "1",
-            },
-            html: emailContent,
-            attachments,
-        });
-    }
+    console.log(formData)
+    await transporter.sendMail({
+      from: `Registation <SMTP_USER>`,
+      to: formData.email,
+      subject: `Thank you for registering for Agneepath 6.0`,
+      headers: {
+          "X-Gm-NoSave": "1",
+      },
+      html: emailContent,
+      attachments,
+  });
 }
 
 export default sendConfirmationEmail;

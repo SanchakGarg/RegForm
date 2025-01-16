@@ -190,6 +190,7 @@ if (!isDraft) {
 }
 
     // Now, call updateUserData to update the user collection
+  if(!isDraft){
     const playerCount = fields.playerFields ? fields.playerFields.length : 0;
     const userDataToUpdate = {
       submittedForms: {
@@ -208,6 +209,7 @@ if (!isDraft) {
         { status: 400 }
       );
     }
+  }
 
 
     return NextResponse.json(

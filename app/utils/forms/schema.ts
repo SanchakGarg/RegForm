@@ -207,8 +207,8 @@ export const ShootingCategories =
 
 
 export const SportsGuidlines: Record<string, string> = {
-    Badminton_Men: "badminton(Men)",
-    Badminton_Women: "badminton(Women)",
+    Badminton_Men: "badminton(men)",
+    Badminton_Women: "badminton(women)",
     Basketball_Men: "basketball",
     Basketball_Women: "basketball",
     Chess_Mixed: "chess",
@@ -244,13 +244,13 @@ export const eventSchema: EventSchema = {
         Badminton_Men: {
             eventName: sports.Badminton_Men,
             specificPages: [
-                generatePageWithPlayerFields(5, 7), // 5 to 7 players
+                generatePageWithPlayerFields(3, 7), // 5 to 7 players
             ],
         },
         Badminton_Women: {
             eventName: sports.Badminton_Women,
             specificPages: [
-                generatePageWithPlayerFields(5, 7), // 5 to 7 players
+                generatePageWithPlayerFields(3, 7), // 5 to 7 players
             ],
         },
         Basketball_Men: {

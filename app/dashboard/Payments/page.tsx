@@ -358,7 +358,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ accommodationPrice = 2100 }) 
                     </FormDescription>
 
                     <div className="flex gap-4">
-                      <div className="flex items-center space-x-2">
+                      {/* <div className="flex items-center space-x-2">
                         <Checkbox
                           onCheckedChange={(checked) => {
                             const current = form.getValues("paymentTypes") || [];
@@ -373,7 +373,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ accommodationPrice = 2100 }) 
                           }}
                         />
                         <span>Accommodation</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           onCheckedChange={(checked) => {
@@ -1050,10 +1050,10 @@ export default function Payments() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Accommodation Details</CardTitle>
-              <CardDescription>Accommodation cost per player for the entire event is ₹{accommodationPrice}</CardDescription>
+              <CardDescription>Accommodation cost per player for the entire event is ₹{accommodationPrice}, which also includes meals and transportation to and from the campus.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -1119,16 +1119,16 @@ export default function Payments() {
                 </form>
               </Form>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card className="bg-primary/5">
+          {/* <Card className="bg-primary/5">
             <CardContent className="p-6">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-primary">Total Amount to be Paid</span>
                 <span className="text-2xl font-bold text-primary">₹{overallTotal}</span>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <div className="mt-6 pb-8 overflow-auto">

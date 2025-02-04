@@ -32,7 +32,7 @@ export default function Accommodations() {
       <Card className="border-none shadow-lg">
         <CardHeader className="border-b border-gray-100">
           <HeadingWithUnderline
-            text="Available Hotels"
+            text="Hotels in the Route"
             desktopSize="md:text-4xl"
             mobileSize="text-2xl"
           />

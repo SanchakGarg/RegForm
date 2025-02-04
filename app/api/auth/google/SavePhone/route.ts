@@ -15,13 +15,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Step 2: Validate and extract data from request body
-        const { universityName,phone } = await req.json();
-        if (!universityName) {
-            return NextResponse.json(
-                { success: false, message: "University name is required." },
-                { status: 400 }
-            );
-        }
+        const { phone } = await req.json();
+       
         if (!phone) {
             return NextResponse.json(
                 { success: false, message: "Phone Number is required." },
@@ -45,14 +40,14 @@ export async function POST(req: NextRequest) {
         // Step 5: Update the user's university name
         const updateResult = await usersCollection.updateOne(
             { email },
-            { $set: { universityName,phone } }
+            { $set: { phone } }
         );
 
         // Step 6: Return success message
         if (updateResult.modifiedCount > 0) {
             return NextResponse.json({
                 success: true,
-                message: "University name saved successfully.",
+                message: "Phone Number saved successfully.",
             });
         } else {
             return NextResponse.json({

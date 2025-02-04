@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface User {
+  phone:any;
   _id:Object;
   name: string;
   universityName: string;

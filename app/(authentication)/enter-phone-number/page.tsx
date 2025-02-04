@@ -11,13 +11,12 @@ import { post } from "@/app/utils/PostGetData";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 interface FormData {
-    universityName: string;
     phone: string;
 }
 
-export default function UniversityNamePage() {
+export default function PhoneNumberPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState<FormData>({ universityName: "", phone: "" });
+    const [formData, setFormData] = useState<FormData>({ phone: "" });
     const [error, setError] = useState<string>("");
     const [success, setSuccess] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -29,11 +28,6 @@ export default function UniversityNamePage() {
 
     const validateForm = (): boolean => {
         const phoneRegex = /^[0-9]{10}$/;
-
-        if (!formData.universityName) {
-            setError("University name is required.");
-            return false;
-        }
 
         if (!phoneRegex.test(formData.phone)) {
             setError("Please enter a valid 10-digit phone number.");
@@ -54,7 +48,7 @@ export default function UniversityNamePage() {
 
         try {
             // Sending the university name and phone number to the backend API
-            const { data, error } = await post<{ message: string }>("/api/auth/google/SaveUniversity", formData);
+            const { data, error } = await post<{ message: string }>("/api/auth/google/SavePhone", formData);
 
             if (data) {
                 setSuccess(data.message);
@@ -72,21 +66,11 @@ export default function UniversityNamePage() {
     return (
         <Card className="w-[350px]">
             <CardHeader>
-                <CardTitle>Enter University Name</CardTitle>
+                <CardTitle>Enter Phone Number</CardTitle>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit}>
                     <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="universityName">University Name</Label>
-                            <Input
-                                id="universityName"
-                                type="text"
-                                placeholder="University Name"
-                                value={formData.universityName}
-                                onChange={handleChange}
-                            />
-                        </div>
                         <div className="flex flex-col space-y-1.5">
                             <Label htmlFor="phone">Phone Number</Label>
                             <Input

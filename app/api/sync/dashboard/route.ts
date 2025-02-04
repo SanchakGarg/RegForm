@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Connect to MongoDB
     // Fetch user data
-    const userResponse = await fetchUserData("email", email, ["name", "universityName","submittedForms"]);
+    const userResponse = await fetchUserData("email", email, ["name", "universityName","submittedForms","phone"]);
     
     if (!userResponse.success || !userResponse.data) {
       return NextResponse.json(

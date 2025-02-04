@@ -9,7 +9,7 @@ function generateVerificationId() {
 
 // Handle POST requests for user registration
 export async function POST(req: Request) {
-  const { name, universityName, email,password } = await req.json();
+  const { name, universityName, email,password,phone } = await req.json();
 
   try {
     const { db } = await connectToDatabase();
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
       email:email.toLowerCase(),
       password: hashedPassword,
       emailVerified: false,
+      phone:phone,
       VerificationId: vid,
       vTimeLimit: expirationTime,
       Accommodation:{needAccommodation:false}

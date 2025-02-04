@@ -274,7 +274,7 @@ export const eventSchema: EventSchema = {
         Football_Men: {
             eventName: sports.Football_Men,
             specificPages: [
-                generatePageWithPlayerFields(9, 14), // 9 to 14 players
+                generatePageWithPlayerFields(9, 15), // 9 to 14 players
             ],
         },
         Futsal_Women: {

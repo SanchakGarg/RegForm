@@ -119,6 +119,10 @@ export default function Dashboard() {
             router.push('/enter-institution-name'); // Replace with your desired redirect path
             return;
           }
+          if (!data.data.phone || data.data.phone.length === 0) {
+            router.push('/enter-phone-number'); // Replace with your desired redirect path
+            return;
+          }
         }
       } catch (err) {
         // console.error('Error syncing dashboard:', err);

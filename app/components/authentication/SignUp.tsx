@@ -23,6 +23,7 @@ interface FormData {
     universityName: string;
     email: string;
     password: string;
+    phone: string;
 }
 
 interface ApiResponse {
@@ -41,6 +42,7 @@ export function SignUp() {
         universityName: "",
         email: "",
         password: "",
+        phone: "",
     });
 
     const [error, setError] = useState<string>("");
@@ -50,13 +52,27 @@ export function SignUp() {
     // Handle change with proper type
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
+        
+        // Ensure only numbers are allowed in phone number field
+        if (id === "phoneNumber") {
+            const numericValue = value.replace(/\D/g, ""); // Remove non-numeric characters
+            setFormData((prev) => ({ ...prev, phone: numericValue }));
+        } else {
+            setFormData((prev) => ({ ...prev, [id]: value }));
+        }
     };
 
     const validateForm = (): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[0-9]{10}$/;
+
         if (!emailRegex.test(formData.email)) {
             setError("Please enter a valid email address.");
+            return false;
+        }
+
+        if (!phoneRegex.test(formData.phone)) {
+            setError("Please enter a valid 10-digit phone number.");
             return false;
         }
 
@@ -65,7 +81,7 @@ export function SignUp() {
             return false;
         }
 
-        if (!formData.name || !formData.universityName || !formData.email || !formData.password) {
+        if (!formData.name || !formData.universityName || !formData.email || !formData.password || !formData.phone) {
             setError("All fields are required.");
             return false;
         }
@@ -85,13 +101,11 @@ export function SignUp() {
             const { data, error } = await post<{ message: string }>("/api/auth", formData);
 
             if (data) {
-              setSuccess(data.message || "Sign-up successful!");
-              await post<{ email: string }>("/api/Mailer/Verification", { email: formData.email });
-              router.push(`/Verification?v=${encrypt({ email: formData.email })}`);
-              
-
+                setSuccess(data.message || "Sign-up successful!");
+                await post<{ email: string }>("/api/Mailer/Verification", { email: formData.email });
+                router.push(`/Verification?v=${encrypt({ email: formData.email })}`);
             } else if (error) {
-              setError(error?.message || "Something went wrong.");
+                setError(error?.message || "Something went wrong.");
             }
         } catch (err) {
             setError("Failed to connect to the server. Please try again.");
@@ -136,6 +150,16 @@ export function SignUp() {
                                     type="email"
                                     placeholder="Email"
                                     value={formData.email}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="flex flex-col space-y-1.5">
+                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                <Input
+                                    id="phoneNumber"
+                                    type="text"
+                                    placeholder="10-digit phone number"
+                                    value={formData.phone}
                                     onChange={handleChange}
                                 />
                             </div>

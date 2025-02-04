@@ -952,7 +952,7 @@ export default function Payments() {
     <div className="w-full h-full relative">
       <div className="w-full px-6 pb-6">
         <HeadingWithUnderline
-          text="Accommodation and Payments"
+          text="Payments"
           desktopSize="md:text-6xl"
           mobileSize="text-3xl sm:text-2xl"
         />

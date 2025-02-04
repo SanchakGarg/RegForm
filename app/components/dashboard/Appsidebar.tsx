@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, BookText, LayoutDashboard, LogOut, Home } from "lucide-react";
+import { CreditCard, BookText, LayoutDashboard, LogOut, Home, Hotel } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,8 @@ const items = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Registration Form", url: "/dashboard/regForm", icon: BookText },
   { title: "Payments", url: "/dashboard/Payments", icon: CreditCard },
+  { title: "Accomodations", url: "/dashboard/Accomodation", icon: Hotel },
+
 ];
 
 export function AppSidebar() {
